@@ -1,0 +1,178 @@
+---
+import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
+import { Icon } from "astro-icon/components";
+import { SocialLinks } from "src/theme.config";
+import { SiteName } from "../theme.config";
+
+const {
+  title = "Default Title",
+  type,
+  imageUrl,
+  description,
+  publishedTime,
+  modifiedTime,
+  author,
+  primaryCategory,
+}: {
+  title?: string;
+  type?: string;
+  imageUrl?: string;
+  description?: string;
+  publishedTime?: string;
+  modifiedTime?: string;
+  author?: string;
+  primaryCategory?: string;
+} = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="language" content="en" />
+    <meta name="site-name" content={SiteName} />
+    <meta name="author" content={author} />
+    <meta name="description" content={description} />
+
+    <meta name="og:site_name" content={SiteName} />
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    {type && <meta property="og:type" content={type} />}
+    {imageUrl && <meta property="og:image" content={imageUrl} />}
+
+    {
+      publishedTime && (
+        <meta property="article:published_time" content={publishedTime} />
+      )
+    }
+    {
+      modifiedTime && (
+        <meta property="article:modified_time" content={modifiedTime} />
+      )
+    }
+    {author && <meta property="article:author" content={author} />}
+    {
+      primaryCategory && (
+        <meta property="article:section" content={primaryCategory} />
+      )
+    }
+
+    <title>{title}</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.slate.min.css"
+    />
+  </head>
+  <body class="container">
+    <header>
+      <nav class="border-b">
+        <ul>
+          <li><a href="/">About</a></li>
+          <li><a href="/posts">Posts</a></li>
+          <li><a href="/rss.xml">RSS Feed</a></li>
+        </ul>
+        <ul>
+          <li transition:persist>
+            <a
+              id="theme-toggle-dark"
+              aria-label="Toggle theme"
+              class="contrast hidden!"
+              data-discover="true"
+              href={currentPath}
+            >
+              <Icon name="bi:moon-stars-fill" />
+            </a>
+            <a
+              id="theme-toggle-light"
+              aria-label="Toggle theme"
+              class="contrast hidden!"
+              data-discover="true"
+              href={currentPath}
+            >
+              <Icon name="bi:sun-fill" />
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer>
+      <nav class="border-t">
+        <ul>
+          {
+            SocialLinks.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="icon"
+                  aria-label={link.icon.split(":")[1]}
+                >
+                  <Icon name={link.icon} />
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </footer>
+  </body>
+</html>
+
+<ClientRouter />
+
+<script>
+  const handleThemeToggle = () => {
+    const darkToggle = document.getElementById("theme-toggle-dark");
+    const lightToggle = document.getElementById("theme-toggle-light");
+
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      lightToggle?.classList.add("hidden!");
+      darkToggle?.classList.remove("hidden!");
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else if (savedTheme === "light") {
+      darkToggle?.classList.add("hidden!");
+      lightToggle?.classList.remove("hidden!");
+      document.documentElement.setAttribute("data-theme", "light");
+    } else {
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      if (prefersDark) {
+        darkToggle?.classList.remove("hidden!");
+        document.documentElement.setAttribute("data-theme", "dark");
+      } else {
+        lightToggle?.classList.remove("hidden!");
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    }
+
+    lightToggle?.addEventListener("click", (e) => {
+      e.preventDefault();
+      lightToggle?.classList.add("hidden!");
+      darkToggle?.classList.remove("hidden!");
+      document.documentElement.setAttribute("data-theme", "dark");
+      localStorage.setItem("theme", "dark");
+    });
+
+    darkToggle?.addEventListener("click", (e) => {
+      e.preventDefault();
+      darkToggle?.classList.add("hidden!");
+      lightToggle?.classList.remove("hidden!");
+      document.documentElement.setAttribute("data-theme", "light");
+      localStorage.setItem("theme", "light");
+    });
+  };
+  document.addEventListener("DOMContentLoaded", handleThemeToggle);
+  document.addEventListener("astro:after-swap", () => handleThemeToggle());
+  document.addEventListener("astro:page-load", () => handleThemeToggle());
+</script>
