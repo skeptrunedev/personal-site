@@ -31,8 +31,8 @@ export default defineConfig({
     fonts: [
       {
         provider: fontProviders.google(),
-        name: "Merriweather",
-        cssVariable: "--font-merriweather",
+        name: "Lora",
+        cssVariable: "--font-lora",
       },
     ],
   },
