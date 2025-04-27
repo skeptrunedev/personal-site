@@ -4,6 +4,7 @@ import { ClientRouter } from "astro:transitions";
 import { Icon } from "astro-icon/components";
 import { SocialLinks } from "src/theme.config";
 import { SiteName } from "../theme.config";
+import { Font } from "astro:assets";
 
 const {
   title = "Default Title",
@@ -60,6 +61,8 @@ const currentPath = Astro.url.pathname;
     }
 
     <title>{title}</title>
+
+    <Font cssVariable="--font-merriweather" preload />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -176,3 +179,19 @@ const currentPath = Astro.url.pathname;
   document.addEventListener("astro:after-swap", () => handleThemeToggle());
   document.addEventListener("astro:page-load", () => handleThemeToggle());
 </script>
+<style>
+  html {
+    font-family: var(--font-merriweather);
+    letter-spacing: normal;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-family: var(--font-merriweather);
+      letter-spacing: normal;
+    }
+  }
+</style>

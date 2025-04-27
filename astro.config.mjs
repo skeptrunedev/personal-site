@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
 import markdoc from "@astrojs/markdoc";
 import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
@@ -26,5 +26,14 @@ export default defineConfig({
       },
     },
     plugins: [tailwindcss()],
+  },
+  experimental: {
+    fonts: [
+      {
+        provider: fontProviders.google(),
+        name: "Merriweather",
+        cssVariable: "--font-merriweather",
+      },
+    ],
   },
 });
