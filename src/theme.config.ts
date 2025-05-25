@@ -17,6 +17,6 @@ export const SocialLinks = [
   { icon: "simple-icons:rss", href: "/rss.xml" },
 ];
 
-export const SiteName = "Pixelbook Blog";
+export const SiteName = "Nick Khami's Blog";
 
-export const SiteUrl = "https://pixelbook.dev";
+export const SiteUrl = "https://nkhami.com";

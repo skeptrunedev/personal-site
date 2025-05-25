@@ -12,34 +12,22 @@ const featuredPosts = allPosts
       (b.data.createdAt?.getTime() ?? 0) - (a.data.createdAt?.getTime() ?? 0)
   )
   .slice(0, 3);
-const catFreqs = allPosts.reduce(
-  (acc, post) => {
-    post.data.categories.forEach((cat) => {
-      if (!acc[cat]) {
-        acc[cat] = 0;
-      }
-      acc[cat]++;
-    });
-    return acc;
-  },
-  {} as Record<string, number>
-);
 ---
 
 <SimpleLayout
-  title="Pixelbook Blog | About"
+  title="Nick Khami's Blog | About"
   type="article"
   imageUrl={Headshot}
-  description="Pixelbook is a fictional character who loves to write and journal."
+  description="About Nick Khami, a software engineer and entrepreneur, founder of Trieve, and previous work at NelNet Payment Services, zeroDAO, Breezy, and Quai."
   publishedTime="2025-04-21T00:00:00Z"
   modifiedTime="2025-04-21T00:00:00Z"
-  author="Pixelbook"
+  author="Nick Khami"
   primaryCategory="About"
 >
   <article>
     <h1>Nick Khami's Blog</h1>
     <p>
-      <Image src={Headshot} alt="Headshot of Pixelbook" class="rounded w-42" />
+      <Image src={Headshot} alt="Headshot of Nick Khami" class="rounded w-42" />
     </p>
 
     <p>
