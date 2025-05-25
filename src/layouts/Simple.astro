@@ -66,14 +66,10 @@ const currentPath = Astro.url.pathname;
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.slate.min.css"
-    />
   </head>
   <body class="container">
     <header>
-      <nav class="border-b">
+      <nav class="border-b mb-12">
         <ul>
           <li><a href="/">About</a></li>
           <li><a href="/posts">Posts</a></li>
@@ -107,7 +103,7 @@ const currentPath = Astro.url.pathname;
       <slot />
     </main>
     <footer>
-      <nav class="border-t">
+      <nav class="border-t mt-12">
         <ul>
           {
             SocialLinks.map((link) => (
@@ -131,7 +127,6 @@ const currentPath = Astro.url.pathname;
 </html>
 
 <ClientRouter />
-
 <script>
   const handleThemeToggle = () => {
     const darkToggle = document.getElementById("theme-toggle-dark");
@@ -179,6 +174,7 @@ const currentPath = Astro.url.pathname;
   document.addEventListener("astro:after-swap", () => handleThemeToggle());
   document.addEventListener("astro:page-load", () => handleThemeToggle());
 </script>
+
 <style>
   html {
     font-family: var(--font-lora);

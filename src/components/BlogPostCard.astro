@@ -10,7 +10,7 @@ interface Props {
 const { post, catFreqs } = Astro.props;
 ---
 
-<article>
+<article class="blog-post-card">
   <a href={`/posts/${post.id}`} class="no-underline! hover:underline!">
     {
       post.data.coverImage && (
