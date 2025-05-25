@@ -6,6 +6,10 @@ export const SocialLinks = [
   },
   { icon: "bi:twitter-x", href: "https://x.com/skeptrune" },
   {
+    icon: "simple-icons:bluesky",
+    href: "https://bsky.app/profile/skeptrune.bsky.social",
+  },
+  {
     icon: "simple-icons:matrix",
     href: "https://matrix.to/#/@skeptrune:trieve.ai",
   },

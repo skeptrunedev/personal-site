@@ -1,13 +1,35 @@
 ---
 import SimpleLayout from "@layouts/Simple.astro";
-import PixelBookWritingOnSelf from "../assets/images/site-content/chatgpt-pixelbook-writing-on-self.png";
+import Headshot from "../assets/images/site-content/profile-photo-cropped.png";
 import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+
+const allPosts = await getCollection("blogPosts");
+const featuredPosts = allPosts
+  .filter((e) => !e.data.isDraft && e.data.isFeatured)
+  .toSorted(
+    (a, b) =>
+      (b.data.createdAt?.getTime() ?? 0) - (a.data.createdAt?.getTime() ?? 0)
+  )
+  .slice(0, 3);
+const catFreqs = allPosts.reduce(
+  (acc, post) => {
+    post.data.categories.forEach((cat) => {
+      if (!acc[cat]) {
+        acc[cat] = 0;
+      }
+      acc[cat]++;
+    });
+    return acc;
+  },
+  {} as Record<string, number>
+);
 ---
 
 <SimpleLayout
   title="Pixelbook Blog | About"
   type="article"
-  imageUrl={PixelBookWritingOnSelf}
+  imageUrl={Headshot}
   description="Pixelbook is a fictional character who loves to write and journal."
   publishedTime="2025-04-21T00:00:00Z"
   modifiedTime="2025-04-21T00:00:00Z"
@@ -15,86 +37,81 @@ import { Image } from "astro:assets";
   primaryCategory="About"
 >
   <article>
-    <h1>Pixelbook Blog</h1>
-    <h2 class="font-medium! text-lg! text-[var(--pico-h6-color)]!">
-      Welcome to my corner of the internet!
-    </h2>
+    <h1>Nick Khami's Blog</h1>
     <p>
-      <Image
-        src={PixelBookWritingOnSelf}
-        alt="Headshot of Pixelbook"
-        class="rounded w-64"
-      />
+      <Image src={Headshot} alt="Headshot of Pixelbook" class="rounded w-42" />
     </p>
 
     <p>
-      Hey! I am Pixelbook. In the past, I have been a simple notebook,
-      encyclopedia, and pulp fiction. At levels of readership as large as Harry
-      Potter and as small as a diary. Today, I am the creator of PicoCSS Astro
-      blog theme available at <a
-        href="https://github.com/skeptrunedev/picocss-astro-theme"
-        >github.com/skeptrunedev/picocss-astro-theme</a
-      >.
+      Hey, I'm Nick! I am software engineer and entrepreneur. Previously, I
+      worked at <a
+        href="https://nelnetinc.com/businesses/nelnet-payment-services/"
+        target="_blank">NelNet Payment Services</a
+      > and a few startups including <a
+        href="https://x.com/zerodaohq?lang=en"
+        target="_blank">zeroDAO</a
+      >,
+      <a href="https://getbreezyapp.com/" target="_blank">Breezy</a>, and <a
+        href="https://qu.ai/"
+        target="_blank">Quai</a
+      >. Currently, I'm building the word's best search API as the founder and
+      CEO of
+      <a href="https://trieve.ai/" target="_blank">Trieve</a>.
     </p>
 
     <p>
-      I am a self-taught scribe (not by choice; stay in libraries!), and for the
-      last 10 chapters of my life, I’ve scribbled my way down the literary
-      stack, starting from humble beginnings with the venerable Quill and
-      Papyrus.
+      I received my B.S. in Computer Science from the University of Texas at
+      Austin in 2022. My concentration was in machine learning and I did <a
+        href="https://arxiv.org/abs/2108.11283#"
+        target="_blank">undergraduate research on GAN's.</a
+      > I have also been lucky enough to receive a bit of an entrepreneurial education
+      through both <a href="https://www.ycombinator.com/" target="_blank"
+        >Y-Combinator's</a
+      > and <a href="https://www.ycombinator.com/">FUTO</a>
+      's amazing programs.
     </p>
 
     <p>
-      I try to practice <a href="/blog/stack-selection">tech stack obsession</a
-      >.
+      My favorite hobbies are reading (TODO: backfill a goodreads profile) and
+      riding motorcycles. Right to repair and open source are important to me.
+      My goal is to try my hand at blogging over the next few months.
     </p>
 
-    <h3>About This Blog</h3>
+    <h2>Featured Posts</h2>
+    <ul class="list-disc pl-6 space-y-2">
+      {
+        featuredPosts.map((post) => (
+          <li>
+            <a href={`/posts/${post.data.slug}`}>{post.data.title}</a>
+          </li>
+        ))
+      }
+    </ul>
 
-    <p>
-      To that end, I built this blog template using <a
-        href="https://astro.build/">astro.build</a
-      > and <a href="http://picocss.com/">Pico CSS</a>. I co-run the keep it
-      simple community (400+ members), run an online book club, and record the
-      "pages of my life" podcast (5.8k+ listeners).
-    </p>
-
-    <p>
-      I play a good deal of <a href="/blog/stack-selection">RSS hunt</a> in the digital
-      realm, keep trying to <a href="/blog/stack-selection">keep it simple</a>,
-      and love to
-      <a href="/blog/stack-selection">avoid writing CSS.</a>.
-    </p>
-
-    <p>
-      I hope that my <a href="/blog/stack-selection">writings</a> become cited in
-      the
-      <a href="https://astro.build/themes">Astro Theme Library</a>.
-    </p>
-
-    <p>
-      I hope you connect with me on
-      <a href="https://www.linkedin.com/in/nicholas-khami-5a0a7a135/"
-        >LinkedIn</a
-      > (5k+ subscribers),
-      <a href="https://x.com/skeptrune">X</a> (1.3k+ followers),
-      <a href="http://github.com/skeptrunedev">Github</a> (100+ followers), or over
-      <a href="mailto:me@skeptrune.io">email</a>.
-    </p>
-
-    <h3>Chatting and Crowdsourcing</h3>
-
-    <p>
-      I absolutely love to exchange ideas. If you ever want to brainstorm,
-      <a href="https://cal.com/nick.k">here's a little page</a> to help me out with
-      scheduling.
-    </p>
-
-    <p>
-      I go out of my way to chat with folks who build in public or contribute to
-      open source. I love to hear about other people's projects and experiences.
-      I also love to hear about your favorite tools and how you use them.
-    </p>
+    <h2>Featured Work</h2>
+    <ul class="list-disc pl-6 space-y-2">
+      <li>
+        <a href="https://github.com/devflowinc/trieve" target="_blank">
+          Trieve: All-in-one platform for search, recommendations, RAG, and
+          analytics offered via API
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://github.com/patroninc/patron/tree/main/astrobits"
+          target="_blank"
+        >
+          Astrobits: Retro neo-brutalist 8/16-bit component library for Astro
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/patroninc/patron">
+          Patron: Open source alternative to Patreon focused on serialized
+          content
+        </a>
+      </li>
+    </ul>
   </article>
 </SimpleLayout>
+
 <!--  -->

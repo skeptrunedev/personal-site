@@ -83,16 +83,6 @@ html {
   &[data-theme="dark"] {
     @apply bg-neutral-900 text-neutral-200;
 
-    nav {
-      ul {
-        a {
-          &:visited {
-            @apply text-amber-500; /* Nav links retain their original color when visited in dark mode */
-          }
-        }
-      }
-    }
-
     a {
       @apply text-amber-500 hover:text-amber-400 decoration-amber-500/50 visited:text-amber-600 visited:hover:text-amber-500;
     }
