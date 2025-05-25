@@ -8,20 +8,11 @@ html {
 
     ul {
       @apply flex items-center justify-center gap-4;
-
-      a {
-        &:visited {
-          @apply text-amber-700; /* Nav links retain their original color when visited in light mode */
-        }
-      }
     }
   }
 
   a {
-    @apply text-amber-700 hover:text-amber-600 underline underline-offset-2 decoration-amber-700/50; /* Muted gold/brown for links */
-    &:visited {
-      @apply text-amber-800; /* General visited links are slightly darker in light mode */
-    }
+    @apply text-amber-700 hover:text-amber-600 underline underline-offset-2 decoration-amber-700/50 visited:text-amber-800 visited:hover:text-amber-700; /* Muted gold/brown for links */
   }
 
   p {
@@ -103,10 +94,7 @@ html {
     }
 
     a {
-      @apply text-amber-500 hover:text-amber-400 decoration-amber-500/50;
-      &:visited {
-        @apply text-amber-600; /* General visited links are slightly darker in dark mode */
-      }
+      @apply text-amber-500 hover:text-amber-400 decoration-amber-500/50 visited:text-amber-600 visited:hover:text-amber-500;
     }
 
     button,
