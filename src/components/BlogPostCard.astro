@@ -10,8 +10,8 @@ interface Props {
 const { post, catFreqs } = Astro.props;
 ---
 
-<article class="blog-post-card">
-  <a href={`/posts/${post.id}`} class="no-underline! hover:underline!">
+<card>
+  <a href={`/posts/${post.id}`} class="no-underline! group">
     {
       post.data.coverImage && (
         <Image
@@ -21,11 +21,11 @@ const { post, catFreqs } = Astro.props;
         />
       )
     }
-    <h4>{post.data.title}</h4>
-    <p>
+    <h4 class="group-hover:underline">{post.data.title}</h4>
+    <date>
       {post.data.createdAt?.toLocaleDateString() ?? "Unknown Date"}
-    </p>
-    <small>{post.data.summary}</small>
+    </date>
+    <p>{post.data.summary}</p>
   </a>
   <div class="flex flex-row flex-wrap gap-2 mt-2">
     {
@@ -40,4 +40,4 @@ const { post, catFreqs } = Astro.props;
       ))
     }
   </div>
-</article>
+</card>

@@ -75,6 +75,20 @@ html {
     @apply block text-sm font-medium text-stone-700 mb-1;
   }
 
+  card {
+    @apply shadow-md rounded-lg p-6 mb-6;
+
+    h4 {
+      @apply text-neutral-800 font-semibold mb-1;
+    }
+    p {
+      @apply text-neutral-600;
+    }
+    date {
+      @apply text-neutral-500 text-sm;
+    }
+  }
+
   &[data-theme="dark"] {
     @apply bg-neutral-900 text-neutral-200;
 
@@ -116,6 +130,20 @@ html {
 
     label {
       @apply text-neutral-300;
+    }
+
+    card {
+      @apply shadow-neutral-950 bg-neutral-800;
+
+      h4 {
+        @apply text-neutral-200 font-semibold mb-1;
+      }
+      p {
+        @apply text-neutral-400;
+      }
+      date {
+        @apply text-neutral-500 text-sm;
+      }
     }
   }
 }
