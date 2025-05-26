@@ -5,22 +5,6 @@ const imagesFromWorktreeProofs = Object.values(
     { eager: true }
   )
 );
-console.log("Images from worktree-proofs:", imagesFromWorktreeProofs);
-
-interface Props {
-  /** Width of the container for the masonry (e.g., "500px", "80vw"). */
-  containerWidth?: string;
-  /** Number of columns in the masonry layout. */
-  columns?: number;
-  /** Gap between images (e.g., "16px"). */
-  gap?: string;
-}
-
-const {
-  containerWidth = "100%", // Default container width
-  columns = 5, // Default number of columns
-  gap = "16px", // Default gap between images
-} = Astro.props;
 
 const imagesToDisplay: ImageMetadata[] = imagesFromWorktreeProofs
   .map((image) => {
@@ -29,20 +13,25 @@ const imagesToDisplay: ImageMetadata[] = imagesFromWorktreeProofs
   .filter((image) => image && image.src && image.width && image.height);
 ---
 
-<div
-  id="three-gallery-container"
-  class="w-full h-[50vh] bg-neutral-900 rounded-2xl overflow-hidden"
-  data-images={JSON.stringify(imagesToDisplay)}
-  data-columns={columns}
->
+<div class="relative w-full">
+  <div
+    id="three-gallery-container"
+    class="w-full h-[30vh] bg-neutral-900 rounded-2xl overflow-hidden"
+    data-images={JSON.stringify(imagesToDisplay)}
+  >
+  </div>
+  <button
+    id="reset-view-btn"
+    class="mt-2 px-4 py-2 bg-neutral-800 text-white rounded hover:bg-neutral-700 transition text-xs"
+    style="position: absolute; top: 1rem; right: 1rem; z-index: 10;"
+  >
+    Reset View
+  </button>
+  <div class="text-center text-xs text-neutral-500 mt-2 w-4/5 mx-auto">
+    Some examples of git worktree discussion on X. Use mouse or touch to rotate
+    and zoom. Click "Reset View" to return to the initial angle.
+  </div>
 </div>
-<button
-  id="reset-view-btn"
-  class="mt-2 px-4 py-2 bg-neutral-800 text-white rounded hover:bg-neutral-700 transition"
-  style="position: absolute; top: 1rem; right: 1rem; z-index: 10;"
->
-  Reset View
-</button>
 
 <script>
   import * as THREE from "three";
@@ -83,8 +72,9 @@ const imagesToDisplay: ImageMetadata[] = imagesFromWorktreeProofs
   gridHelper.position.z = -5; // Position grid behind the y-axis
   scene.add(gridHelper);
 
-  const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
-  camera.position.set(0, 0, 15);
+  const camera = new THREE.PerspectiveCamera(10, width / height, 0.1, 1000);
+  // Change the initial camera position to be at an angle
+  camera.position.set(12, 5, 15);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(width, height);
@@ -97,14 +87,16 @@ const imagesToDisplay: ImageMetadata[] = imagesFromWorktreeProofs
   controls.dampingFactor = 0.1;
   controls.minDistance = 0;
   controls.maxDistance = 50;
-  controls.enablePan = true;  // Enable panning
-  controls.panSpeed = 0.8;    // Adjust panning speed (default is 1.0)
-  controls.screenSpacePanning = true;  // Enable screen space panning for more intuitive movement
+  controls.enablePan = true;
+  controls.panSpeed = 0.8;
+  controls.screenSpacePanning = true;
+  // Set the controls target to focus slightly offset from center
+  controls.target.set(0, 0, 0);
 
   const planeWidth = 4;
 
   // Cluster settings
-  const clusterRadius = 5; // <-- Denser cluster (was 12)
+  const clusterRadius = 4; // <-- Denser cluster (was 12)
 
   imagesToDisplay.forEach((img: ImageMetadata) => {
     const textureLoader = new THREE.TextureLoader();
@@ -179,7 +171,8 @@ const imagesToDisplay: ImageMetadata[] = imagesFromWorktreeProofs
   const resetBtn = document.getElementById("reset-view-btn");
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
-      camera.position.set(0, 0, 20);
+      // Update reset position to match the angled view
+      camera.position.set(12, 5, 15);
       controls.target.set(0, 0, 0);
       controls.update();
     });
