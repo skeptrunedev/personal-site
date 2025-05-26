@@ -11,18 +11,20 @@
   },
   "dependencies": {
     "@astrojs/markdoc": "^0.15.0",
-    "@astrojs/mdx": "^4.2.4",
+    "@astrojs/mdx": "4.3.0",
     "@astrojs/rss": "^4.0.11",
-    "@astrojs/sitemap": "^3.3.0",
+    "@astrojs/sitemap": "3.4.0",
     "@tailwindcss/vite": "^4.1.4",
-    "astro": "^5.7.0",
+    "astro": "5.8.0",
     "astro-icon": "^1.1.5",
     "markdown-it": "^14.1.0",
     "sanitize-html": "^2.16.0",
-    "tailwindcss": "^4.1.4"
+    "tailwindcss": "^4.1.4",
+    "three": "^0.176.0"
   },
   "devDependencies": {
     "@iconify-json/bi": "^1.2.2",
-    "@iconify-json/simple-icons": "^1.2.32"
+    "@iconify-json/simple-icons": "^1.2.32",
+    "@types/three": "^0.176.0"
   }
 }
