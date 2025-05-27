@@ -17,29 +17,25 @@ categories:
 
 import Pile from "../../components/Pile.astro";
 
-My initial workflow with AI coding agents (e.g. [Claude Code](https://www.anthropic.com/claude-code) or [codex](https://github.com/openai/codex)) involved prompting them to perform a task, tabbing away to something else, and then returning a few minutes later to evaluate the results. This made me feel like a [fitless human from Wall-E](https://www.youtube.com/watch?v=s-kdRdzxdZQ), unproductive and just waiting for the AI to complete the work. When autocomplete was the default AI coding tool, a lesser version of this behavior was called [co-pilot pause](https://youtu.be/Wap2tkgaT1Q?si=XKtFnZ5hZUFhjPsG&t=62). The issue is even more pronounced with agents, as they force you into longer pauses since they take more time to run.
-
-### Why worktrees pair well with AI
-
-This passive waiting game was the core issue I needed to solve, and I found an unexpected ally in a familiar Git feature: worktrees. My favorite metaphor for the AI worktree development process is that it's similar to how you might [hire 5 to 10 people on Fiverr to do the same task](https://x.com/garrytan/status/1918027171039461435) to decide who the top performers you want to work with long term are.
-
-LLMs are stochastic systems, meaning that even the same model with the same prompt will almost always produce a different result each time it runs. This variability allows you to maximize the value of AI agents by deploying the same prompt to multiple instances of the same agentic system in parallel, trusting that at least one will yield a good result. It's akin to a [Monte Carlo experiment](https://en.wikipedia.org/wiki/Monte_Carlo_method), where you run the same prompt multiple times and then choose the best outcome.
-
-Worktrees allow you to achieve this at an automatable scale by firing off agents in parallel, each in its own completely isolated copy of your codebase. Depending on the difficulty of the task, you can run more or fewer agents. For example, if I'm working on something challenging in a Rust backend, I might run 5 agents. However, if I'm adding a basic React component to the frontend, I might run just 2.
-
-### Breaking out of my passivity
-
-AI coding agents are often touted as a force multiplier for developers, enabling them to produce more working code in the same amount of time. However, this was not my initial experience. I found myself unable to get into a flow state, constantly pausing to wait for the AI to finish and feeling like I could complete the task faster manually. Yet, the promise of coding superpowers was too compelling to ignore, so I persisted.
-
-Iterating on my workflow with git worktrees completely transformed my experience. I began to feel more like a superhuman commanding officer, orchestrating a fleet of agents to brute-force solutions as needed. Others have reported similar experiences, as evidenced by [Anthropic mentioning worktrees in Claude Code's documentation](https://docs.anthropic.com/en/docs/claude-code/tutorials#run-parallel-claude-code-sessions-with-git-worktrees), [discussions on Hacker News](https://news.ycombinator.com/item?id=44043717), and projects like [Claude Squad](https://github.com/smtg-ai/claude-squad). Check out the three.js space below for some fun posts about it on X!
+Others have had similar results, as evidenced by mentions of Git worktrees in [Claude Code's docs](https://docs.anthropic.com/en/docs/claude-code/tutorials#run-parallel-claude-code-sessions-with-git-worktrees), [discussion on Hacker News](https://news.ycombinator.com/item?id=44043717), projects like [Claude Squad](https://github.com/smtg-ai/claude-squad), and conversation on [X](https://x.com/search?q=git%20worktree&src=typed_query&f=live).
 
 <Pile />
 
-### We need software that makes this easier
+### Why worktrees pair well with AI
 
-It still feels like early days for this workflow, but I believe it has the potential to become a standard practice for AI-assisted software development with some improvements to the developer experience.
+My favorite metaphor for the AI worktree development process is that it's similar to how you might [hire multiple people on Fiverr to work on the same task](https://x.com/garrytan/status/1918027171039461435) to see who delivers the best results. Humans on Fiverr naturally work in isolation since they each bring their own working environment without sharing common state.
 
-The current process is cumbersome. I manually create git worktrees using `git worktree add -b newbranch ../path`, start a tmux session for each worktree, run Claude Code in the first pane, paste a prompt, use `leader+c` to open a new pane, run `yarn dev` to get a preview, switch to my browser to review, re-prompt if no agents succeed, and finally commit, push, and create a PR once I'm satisfied with the results.
+This isolation is exactly what agents need to run in parallel, but it's hard to achieve with standard git in a single directory. Multiple agents in one folder can overwrite each other's changes, causing confusion. [Git worktrees](https://git-scm.com/docs/git-worktrees) solve this by creating isolated working directories that share the same repository. Each worktree can have its own branch and agent, allowing you to run multiple simultaneously without interference.
+
+While more complex and costly in terms of tokens than using a single agent, this pattern offers quality advantages due to the stochastic nature of codegen agents. Running multiple instances with identical prompts effectively creates a [Monte Carlo process](https://en.wikipedia.org/wiki/Monte_Carlo_method), rather than depending on a single potentially suboptimal output, you can compare results from several agents, select the best one, or combine elements to create an optimal solution.
+
+The number of agents you run can be adjusted based on the complexity of the task. For instance, when trying to solve a challenging Rust backend issue, I would run 5, while for a basic React component, just 2 would suffice. Worktrees make this elastic scalability seamless, allowing you run as many agents as needed without cluttering your main branch or repository.
+
+### Current state of the art: manual worktrees and tmux
+
+I've been using git worktrees with AI agents for a while now, and while it has significantly improved my productivity, the process is still quite manual and cumbersome.
+
+Currently, I manually create git worktrees using `git worktree add -b newbranch ../path`, start a `tmux` session for each worktree, run Claude Code in the first pane, paste a prompt, use `leader+c` to open a new pane, run `yarn dev` to get a preview, switch to my browser to review, re-prompt if no agents succeed, and finally commit, push, and create a PR once I'm satisfied with the results.
 
 Here are the top pain points:
 
@@ -50,12 +46,27 @@ Here are the top pain points:
 - Agents often fail in the same way, and repeating the same prompt or fix across them is too repetitive. I should be able to broadcast a followup prompt to all agents at once and move on.
 - Web previewing is a pain. I have to manually run `yarn dev` in each worktree, and then hold the mental model of which port each worktree is on. Automating a reverse proxy to handle this with a decent naming scheme would be a game-changer.
 
-The ideal developer experience (DX) would involve a lightweight CLI that wraps tmux, automating the above set of tasks. My co-founder Denzell and I personally want a solution badly enough that we are dedicating a few days to building such a management CLI, which we're calling [uzi](https://github.com/devflowinc/uzi). Our aim is to abstract away some of the above pain points with commands like `prompt`, `ls`, `kill`, `run`, and `checkpoint` which effectively trigger different `tmux send-keys` operations.
+### Proposing a solution: `uzi`
+
+To address these challenges head-on, the ideal developer experience (DX) would involve a lightweight CLI that wraps tmux, automating this complex orchestration. My co-founder Denzell and I felt these pain points acutely enough that we've begun developing such a tool, which we're calling [uzi](https://github.com/devflowinc/uzi). The core idea behind `uzi` is to abstract away the manual, repetitive tasks involved in managing multiple AI agent worktrees.
+
+For example, `uzi` aims to simplify common operations:
+
+- `uzi start --agents claude:3,codex:2 --prompt "Implement feature X"` could initialize and prompt three Claude instances and two Codex instances, each in its own worktree.
+- `uzi ls` would display all active agents, their target branches, and current statuses.
+- `uzi exec --all -- yarn dev` could run a command like `yarn dev` across all agent worktrees.
+- `uzi broadcast -- "Refine the previous response by focusing on Y"` would send a follow-up prompt to all active agents.
+- `uzi checkpoint --agent claude-1 --message "Implemented initial draft"` could rebase the specified agent's worktree and commit the changes.
+- `uzi kill --agent codex-2` would clean up a specific agent's tmux session and optionally its worktree.
+
+These commands would primarily operate by sending `tmux send-keys` instructions to the appropriate sessions, streamlining the workflow.
 
 ### The Future is Parallel: Beyond Code
 
-This hypothetical CLI tool, "uzi," exemplifies how purpose-built software can enhance parallel AI-driven software development. However, the underlying principles of this worktree approach extend beyond coding to knowledge work in general.
+While `uzi` focuses on software developers, this "Fiverr Method" for AI isn't limited to tech; the principle of leveraging multiple agents running in parallel to increase the odds of finding an optimal solution applies universally.
 
-Consider a company like [versionstory](https://www.versionstory.com/), which is pioneering version control for transactional lawyers. An attorney could easily run multiple instances of an AI agent in parallel to redline a contract, review the results, and select the best version to finalize.
+Consider a company like [versionstory](https://www.versionstory.com/), which is pioneering version control for transactional lawyers. An attorney could avoid "copilot pause" by running multiple instances of an agent to redline a contract. After reviewing the outputs, they could select and merge the best components to finalize the document. This approach would provide additional confidence in the quality of the final review as it would be based on multiple independent analyses rather than a single agent's output.
 
-This parallel paradigm isn't just a new technique for developers; it's a glimpse into a more efficient and powerful future for AI-assisted productivity across various fields.
+Similarly, a marketing team could employ this parallel strategy to perform data analysis on ad performance. By prompting multiple AI instances, they could quickly gather a range of analyses, review them, and select the most insightful ones to inform their strategy. More coverage of the solution space leads to better decision-making and more effective campaigns.
+
+This parallel paradigm isn't just a new technique for developers; it's a glimpse into a more efficient, robust, and powerful future for AI-assisted productivity across various fields.
