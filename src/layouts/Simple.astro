@@ -132,44 +132,57 @@ const currentPath = Astro.url.pathname;
     const darkToggle = document.getElementById("theme-toggle-dark");
     const lightToggle = document.getElementById("theme-toggle-light");
 
+    const applyTheme = (theme: string) => {
+      if (theme === "dark") {
+        lightToggle?.classList.add("hidden!");
+        darkToggle?.classList.remove("hidden!");
+        document.documentElement.setAttribute("data-theme", "dark");
+      } else {
+        darkToggle?.classList.add("hidden!");
+        lightToggle?.classList.remove("hidden!");
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    };
+
     const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-      lightToggle?.classList.add("hidden!");
-      darkToggle?.classList.remove("hidden!");
-      document.documentElement.setAttribute("data-theme", "dark");
-    } else if (savedTheme === "light") {
-      darkToggle?.classList.add("hidden!");
-      lightToggle?.classList.remove("hidden!");
-      document.documentElement.setAttribute("data-theme", "light");
+    if (savedTheme) {
+      applyTheme(savedTheme);
     } else {
       const prefersDark = window.matchMedia(
         "(prefers-color-scheme: dark)"
       ).matches;
-      if (prefersDark) {
-        darkToggle?.classList.remove("hidden!");
-        document.documentElement.setAttribute("data-theme", "dark");
-      } else {
-        lightToggle?.classList.remove("hidden!");
-        document.documentElement.setAttribute("data-theme", "light");
-      }
+      applyTheme(prefersDark ? "dark" : "light");
     }
 
     lightToggle?.addEventListener("click", (e) => {
       e.preventDefault();
-      lightToggle?.classList.add("hidden!");
-      darkToggle?.classList.remove("hidden!");
-      document.documentElement.setAttribute("data-theme", "dark");
+      applyTheme("dark");
       localStorage.setItem("theme", "dark");
     });
 
     darkToggle?.addEventListener("click", (e) => {
       e.preventDefault();
-      darkToggle?.classList.add("hidden!");
-      lightToggle?.classList.remove("hidden!");
-      document.documentElement.setAttribute("data-theme", "light");
+      applyTheme("light");
       localStorage.setItem("theme", "light");
     });
   };
+
+  // Apply theme immediately to prevent flash
+  (() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    } else {
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      document.documentElement.setAttribute(
+        "data-theme",
+        prefersDark ? "dark" : "light"
+      );
+    }
+  })();
+
   document.addEventListener("DOMContentLoaded", handleThemeToggle);
   document.addEventListener("astro:after-swap", () => handleThemeToggle());
   document.addEventListener("astro:page-load", () => handleThemeToggle());

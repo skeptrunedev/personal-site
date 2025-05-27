@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 html {
-  @apply p-4 mx-auto container bg-stone-50 text-stone-800; /* Light mode default: off-white background, dark gray text */
+  @apply p-4 mx-auto container max-w-6xl bg-stone-50 text-stone-800 w-fit; /* Light mode default: off-white background, dark gray text */
 
   nav {
     @apply flex justify-between py-2;
@@ -80,6 +80,16 @@ html {
     }
   }
 
+  article {
+    ul {
+      @apply list-disc pl-8 my-4 space-y-2;
+    }
+
+    code {
+      @apply bg-stone-200 text-stone-800 px-1.5 py-0.5 rounded font-mono text-sm; /* Light mode: subtle background, dark text */
+    }
+  }
+
   &[data-theme="dark"] {
     @apply bg-neutral-900 text-neutral-200;
 
@@ -121,6 +131,12 @@ html {
       }
       date {
         @apply text-neutral-500 text-sm;
+      }
+    }
+
+    article {
+      code {
+        @apply bg-neutral-700 text-neutral-100 px-1.5 py-0.5 rounded font-mono text-sm; /* Dark mode: subtle background, light text */
       }
     }
   }
