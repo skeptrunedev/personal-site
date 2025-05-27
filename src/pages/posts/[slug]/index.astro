@@ -1,4 +1,5 @@
 ---
+import ImageFourSquareWorktrees from "@components/blog/UsingGitWorktreesWithAI/ImageFourSquareWorktrees.astro";
 import SimpleLayout from "@layouts/Simple.astro";
 import { Image } from "astro:assets";
 import { getCollection, render } from "astro:content";
@@ -33,7 +34,7 @@ const i18n = entry.data;
 <SimpleLayout
   title=`${i18n.title} | Category | Trieve`
   type="article"
-  imageUrl={i18n.coverImage}
+  imageUrl={i18n.coverImage?.src}
   description={i18n.summary}
   publishedTime={i18n.createdAt?.toISOString()}
   modifiedTime={i18n.updatedAt?.toISOString()}
@@ -90,6 +91,10 @@ const i18n = entry.data;
         </div>
       )
     }
-    <Content />
+    <Content
+      components={{
+        ImageFourSquareWorktrees,
+      }}
+    />
   </article>
 </SimpleLayout>

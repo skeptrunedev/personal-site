@@ -1,41 +1,39 @@
 ---
-title: "Using Git Worktrees for Massively Parallel AI SWE Agents"
-slug: git-worktrees-with-AI
+title: "Software development superpowers with git worktrees, tmux, and parallel agents"
+slug: git-worktrees-agents-and-tmux
 summary: >-
-  I spent months chasing developer superpowers with AI codegen and struggled to feel any productivity gain, then immediately found it when I started using git worktrees to run multiple instances of terminal-driven coding agents like Claude Code and Codex in parallel.
+  If you feel underwhelmed with AI codegen products or just want more out of them, you should give git worktrees and parallel inference a shot. I'm willing to call myself an evangelist after seeing the results firsthand over the past month. Throughput improvements are incredible and I don't feel like I'm losing control of the codebase.
 author: Nicholas Khami
 createdAt: 2024-05-26T18:52:00.000Z
 updatedAt: 2024-05-26T18:52:00.000Z
 coverImage: src/assets/images/blog-posts/UsingGitWorktreesWithAI/open-graph.png
 displayCoverImage: false
-isDraft: true
+isDraft: false
 isFeatured: true
 categories:
   - ai
   - vcs
 ---
 
-import Pile from "../../components/Pile.astro";
+import Pile from "../../components/blog/UsingGitWorktreesWithAI/Pile.astro";
 
 This realization isn't unique to me; the effectiveness of using Git worktrees for simultaneous execution is gaining broader recognition, as evidenced by mentions in [Claude Code's docs](https://docs.anthropic.com/en/docs/claude-code/tutorials#run-parallel-claude-code-sessions-with-git-worktrees), [discussion on Hacker News](https://news.ycombinator.com/item?id=44043717), projects like [Claude Squad](https://github.com/smtg-ai/claude-squad), and conversation on [X](https://x.com/search?q=git%20worktree&src=typed_query&f=live).
 
 <Pile />
 
-### Making the case for parallel codegen
+### Personal example building a UI component
 
-I think of the parallel inference process like [hiring multiple freelancers on Fiverr for the same task](https://x.garrytan/status/1918027171039461435). Each freelancer works in their own environment and comes up with a unique solution to the problem. This way, you can compare outputs and select the best one, rather than relying on a single person who may not fully understand your needs or deliver subpar results.
+I am building a component library called [astrobits](https://astrobits.dev) and wanted to add a `Toggle` component. To tackle the task, I rolled out two [Claude Code](https://www.anthropic.com/claude-code) and two [Codex](https://openai.com/index/introducing-codex/) agents, each running in parallel within their own isolated [git worktrees](https://git-scm.com/docs/git-worktrees). Worktrees are essential because they provide each agent with an isolated working directory. Without this isolation, agents would overwrite each other's changes, creating confusion and wasted effort.
 
-This spray and pray approach is the most effective way to leverage codegen, but hard to achieve with standard git in a single directory. Multiple agents running in one folder can overwrite each other's changes, causing confusion. [Git worktrees](https://git-scm.com/docs/git-worktrees) solve this by creating isolated working directories that share the same repository. Each worktree can have its own branch and agent, allowing you to run multiple simultaneously without them crossing wires.
+Number of agents I choose to run depends on the complexity of the task. For simpler tasks, two agents are usually sufficient. For moderately complex tasks, three to five agents work well. For the most challenging tasks, six or more agents may be necessary. Over time, you'll develop an intuition for estimating the right number of agents based on the task at hand. Here, I felt like 4 was appropriate.
 
-This approach is more complex and token-intensive than using a single agent, but provides significant quality benefits. These coding agent systems are stochastic, so running the same prompt multiple times produces different outputs. By running several in parallel with identical prompts, you create a [Monte Carlo process](https://en.wikipedia.org/wiki/Monte_Carlo_method) that lets you compare multiple solutions and choose the best one, rather than risking getting only a single potentially suboptimal result.
+Voila, results! Only one of the four agents produced a solution that actually saved me time. I probably needed to run more agents, but it's fine. Before parallel agents, I would have gotten a single output that didn't work and then likely give up and do it myself. Now, I have a working solution that I can build on and feel that AI is awesome. It's also not much more expensive in terms of cost magnitude, we are talking going from $0.10 to $0.40 for the task, which is a drop in the bucket compared to the value of the time saved.
 
-It's important to note that you can scale the number of parallel agents you rollout based on task complexity. For example, I typically run 5 agents for challenging Rust backend issues but only 2 for basic React components. Worktrees enable this elastic scaling without cluttering your main branch or repository. With enough worktrees and compute, you can brute force nearly any problem.
+<ImageFourSquareWorktrees />
 
-However, it's early days for this approach and not much tooling exists yet.
+If the tooling were better, I could have just re-ran the process from scratch with 8 agents instead of having to do any manual work whatsoever. Low-level day to day of using parallel agents is still far from a frictionless experience.
 
-### Current state of the art: manual worktrees and tmux
-
-I've been using git worktrees with AI agents for a while now, and while it has significantly improved my productivity, the process is full of papercuts.
+### Raw workflow pain points
 
 Currently, I manually create git worktrees using `git worktree add -b newbranch ../path`, start a `tmux` session for each one, run Claude Code in the first pane, paste a prompt, `leader+c` into a new pane, run `yarn dev` to get a preview, switch to my browser to review, re-prompt if no agents succeed, and finally commit, push, and create a PR once I'm satisfied with the results.
 
@@ -65,7 +63,7 @@ These commands would primarily operate by sending `tmux send-keys` instructions 
 
 ### The Future is Parallel: Beyond Code
 
-While `uzi` focuses on software developers, this "Fiverr Method" for AI isn't limited to tech; the principle of leveraging multiple agents running in parallel to increase the odds of finding an optimal solution applies universally.
+While `uzi` focuses on software developers, its methodology isn't limited to tech; the principle of leveraging multiple agents running in parallel to increase the odds of finding an optimal solution applies universally.
 
 Consider a company like [versionstory](https://www.versionstory.com/), which is pioneering version control for transactional lawyers. An attorney could leverage their software to run multiple instances of an agent to redline a contract. After reviewing the outputs, they could select and merge the best components to finalize the document. This approach would provide additional confidence in the quality of the final review as it would be based on multiple independent analyses rather than a single agent's output.
 
