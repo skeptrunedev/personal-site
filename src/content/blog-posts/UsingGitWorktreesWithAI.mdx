@@ -2,7 +2,7 @@
 title: "The 'Fiverr Method' for AI: Using Git Worktrees to Run Agents in Parallel"
 slug: git-worktrees-with-AI
 summary: >-
-  I struggled to boost my productivity with AI until I started using git worktrees to run multiple agents in parallel with the same prompt, which completely transformed my experience.
+  I spent months chasing developer superpowers with AI codegen and struggled to feel any productivity gain, then immediately found it when I started using git worktrees to run multiple instances of coding agents like Claude Code and Codex in parallel.
 author: Nicholas Khami
 createdAt: 2024-05-26T18:52:00.000Z
 updatedAt: 2024-05-26T18:52:00.000Z
@@ -17,23 +17,23 @@ categories:
 
 import Pile from "../../components/Pile.astro";
 
-Others have had similar results, as evidenced by mentions of Git worktrees in [Claude Code's docs](https://docs.anthropic.com/en/docs/claude-code/tutorials#run-parallel-claude-code-sessions-with-git-worktrees), [discussion on Hacker News](https://news.ycombinator.com/item?id=44043717), projects like [Claude Squad](https://github.com/smtg-ai/claude-squad), and conversation on [X](https://x.com/search?q=git%20worktree&src=typed_query&f=live).
+This realization isn't unique to me; the effectiveness of using Git worktrees for simultaneous execution is gaining broader recognition, as evidenced by mentions in [Claude Code's docs](https://docs.anthropic.com/en/docs/claude-code/tutorials#run-parallel-claude-code-sessions-with-git-worktrees), [discussion on Hacker News](https://news.ycombinator.com/item?id=44043717), projects like [Claude Squad](https://github.com/smtg-ai/claude-squad), and conversation on [X](https://x.com/search?q=git%20worktree&src=typed_query&f=live).
 
 <Pile />
 
-### Why worktrees pair well with AI
+### Why bother with worktrees and parallel agents?
 
-My favorite metaphor for the AI worktree development process is that it's similar to how you might [hire multiple people on Fiverr to work on the same task](https://x.com/garrytan/status/1918027171039461435) to see who delivers the best results. Humans on Fiverr naturally work in isolation since they each bring their own working environment without sharing common state.
+I like to think of the AI worktree development process like [hiring multiple freelancers on Fiverr for the same task](https://x.garrytan/status/1918027171039461435). Each freelancer works in their own environment and comes up with a unique solution to the problem. This way, you can compare outputs and select the best one, rather than relying on a single freelancer who may not fully understand your needs or deliver subpar results.
 
-This isolation is exactly what agents need to run in parallel, but it's hard to achieve with standard git in a single directory. Multiple agents in one folder can overwrite each other's changes, causing confusion. [Git worktrees](https://git-scm.com/docs/git-worktrees) solve this by creating isolated working directories that share the same repository. Each worktree can have its own branch and agent, allowing you to run multiple simultaneously without interference.
+This process is the most effective way to leverage AI, but it's hard to achieve with standard git in a single directory. Multiple agents in one folder can overwrite each other's changes, causing confusion. [Git worktrees](https://git-scm.com/docs/git-worktrees) solve this by creating isolated working directories that share the same repository. Each worktree can have its own branch and agent, allowing you to run multiple simultaneously without interference.
 
-While more complex and costly in terms of tokens than using a single agent, this pattern offers quality advantages due to the stochastic nature of codegen agents. Running multiple instances with identical prompts effectively creates a [Monte Carlo process](https://en.wikipedia.org/wiki/Monte_Carlo_method), rather than depending on a single potentially suboptimal output, you can compare results from several agents, select the best one, or combine elements to create an optimal solution.
+This approach is more complex and token-intensive than using a single agent, but it provides significant quality benefits. Since AI models are stochastic, running the same prompt multiple times produces different outputs. By running several agents in parallel with identical prompts, you create a [Monte Carlo process](https://en.wikipedia.org/wiki/Monte_Carlo_method) that lets you compare multiple solutions and choose the best one, rather than risking getting only a single potentially suboptimal result.
 
-The number of agents you run can be adjusted based on the complexity of the task. For instance, when trying to solve a challenging Rust backend issue, I would run 5, while for a basic React component, just 2 would suffice. Worktrees make this elastic scalability seamless, allowing you run as many agents as needed without cluttering your main branch or repository.
+It's important to note that you can scale the number of parallel agents you rollout based on task complexity. For example, I typically run 5 agents for challenging Rust backend issues but only 2 for basic React components. Worktrees enable this elastic scaling without cluttering your main branch or repository. With enough worktrees and compute, you can brute force nearly any problem.
 
 ### Current state of the art: manual worktrees and tmux
 
-I've been using git worktrees with AI agents for a while now, and while it has significantly improved my productivity, the process is still quite manual and cumbersome.
+I've been using git worktrees with AI agents for a while now, and while it has significantly improved my productivity, the process is still full of papercuts and inefficiencies.
 
 Currently, I manually create git worktrees using `git worktree add -b newbranch ../path`, start a `tmux` session for each worktree, run Claude Code in the first pane, paste a prompt, use `leader+c` to open a new pane, run `yarn dev` to get a preview, switch to my browser to review, re-prompt if no agents succeed, and finally commit, push, and create a PR once I'm satisfied with the results.
 
@@ -59,14 +59,14 @@ For example, `uzi` aims to simplify common operations:
 - `uzi checkpoint --agent claude-1 --message "Implemented initial draft"` could rebase the specified agent's worktree and commit the changes.
 - `uzi kill --agent codex-2` would clean up a specific agent's tmux session and optionally its worktree.
 
-These commands would primarily operate by sending `tmux send-keys` instructions to the appropriate sessions, streamlining the workflow.
+These commands would primarily operate by sending `tmux send-keys` instructions to the appropriate sessions. We don't want to reinvent the wheel; we just want to polish the existing process and make it more efficient.
 
 ### The Future is Parallel: Beyond Code
 
 While `uzi` focuses on software developers, this "Fiverr Method" for AI isn't limited to tech; the principle of leveraging multiple agents running in parallel to increase the odds of finding an optimal solution applies universally.
 
-Consider a company like [versionstory](https://www.versionstory.com/), which is pioneering version control for transactional lawyers. An attorney could avoid "copilot pause" by running multiple instances of an agent to redline a contract. After reviewing the outputs, they could select and merge the best components to finalize the document. This approach would provide additional confidence in the quality of the final review as it would be based on multiple independent analyses rather than a single agent's output.
+Consider a company like [versionstory](https://www.versionstory.com/), which is pioneering version control for transactional lawyers. An attorney could leverage their software to run multiple instances of an agent to redline a contract. After reviewing the outputs, they could select and merge the best components to finalize the document. This approach would provide additional confidence in the quality of the final review as it would be based on multiple independent analyses rather than a single agent's output.
 
 Similarly, a marketing team could employ this parallel strategy to perform data analysis on ad performance. By prompting multiple AI instances, they could quickly gather a range of analyses, review them, and select the most insightful ones to inform their strategy. More coverage of the solution space leads to better decision-making and more effective campaigns.
 
-This parallel paradigm isn't just a new technique for developers; it's a glimpse into a more efficient, robust, and powerful future for AI-assisted productivity across various fields.
+This parallel paradigm isn't just a new technique for developers; it's a glimpse into a more efficient, robust, and powerful future for AI-assisted productivity across various fields. I expect to see existing software products start to gain more powerful version control and parallel execution capabilities which emulate the workflow enabled by git worktrees for software and enable this "Fiverr Method" for AI across industries.
