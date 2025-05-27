@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 html {
-  @apply p-4 mx-auto container max-w-4xl bg-stone-50 text-stone-800 w-fit; /* Light mode default: off-white background, dark gray text */
+  @apply p-4 mx-auto container max-w-4xl bg-stone-50 text-stone-800 w-fit;
 
   nav {
     @apply flex justify-between py-2;
@@ -12,11 +12,11 @@ html {
   }
 
   a {
-    @apply text-amber-700 hover:text-amber-600 underline underline-offset-2 decoration-amber-700/50 visited:text-amber-800 visited:hover:text-amber-700; /* Muted gold/brown for links */
+    @apply text-amber-700 hover:text-amber-600 underline underline-offset-2 decoration-amber-700/50 visited:text-amber-800 visited:hover:text-amber-700;
   }
 
   p {
-    @apply my-4; /* Default vertical spacing for paragraphs */
+    @apply my-4;
   }
 
   h1 {
@@ -86,7 +86,7 @@ html {
     }
 
     code {
-      @apply bg-stone-200 text-stone-800 px-1.5 py-0.5 rounded font-mono text-sm; /* Light mode: subtle background, dark text */
+      @apply bg-stone-200 text-stone-800 px-1.5 py-0.5 rounded font-mono text-sm;
     }
   }
 
@@ -136,7 +136,7 @@ html {
 
     article {
       code {
-        @apply bg-neutral-700 text-neutral-100 px-1.5 py-0.5 rounded font-mono text-sm; /* Dark mode: subtle background, light text */
+        @apply bg-neutral-700 text-neutral-100 px-1.5 py-0.5 rounded font-mono text-sm;
       }
     }
   }
