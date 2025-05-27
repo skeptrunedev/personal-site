@@ -23,7 +23,7 @@ This realization isn't unique to me; the effectiveness of using Git worktrees fo
 
 ### Making the case for parallel codegen
 
-I like to think of the parallel inference process like [hiring multiple freelancers on Fiverr for the same task](https://x.garrytan/status/1918027171039461435). Each freelancer works in their own environment and comes up with a unique solution to the problem. This way, you can compare outputs and select the best one, rather than relying on a single person who may not fully understand your needs or deliver subpar results.
+I think of the parallel inference process like [hiring multiple freelancers on Fiverr for the same task](https://x.garrytan/status/1918027171039461435). Each freelancer works in their own environment and comes up with a unique solution to the problem. This way, you can compare outputs and select the best one, rather than relying on a single person who may not fully understand your needs or deliver subpar results.
 
 This spray and pray approach is the most effective way to leverage codegen, but hard to achieve with standard git in a single directory. Multiple agents running in one folder can overwrite each other's changes, causing confusion. [Git worktrees](https://git-scm.com/docs/git-worktrees) solve this by creating isolated working directories that share the same repository. Each worktree can have its own branch and agent, allowing you to run multiple simultaneously without them crossing wires.
 
