@@ -1,5 +1,5 @@
 ---
-title: My Experience Using Git Worktrees with AI
+title: "The 'Fiverr Method' for AI: Using Git Worktrees to Run Agents in Parallel"
 slug: git-worktrees-with-AI
 summary: >-
   I struggled to boost my productivity with AI until I started using git worktrees to run multiple agents in parallel with the same prompt, which completely transformed my experience.
@@ -17,42 +17,43 @@ categories:
 
 import Pile from "../../components/Pile.astro";
 
-My initial workflow with AI coding agents was to prompt them to perform some task, tab away to something else, and then return a few minutes later to evaluate the results. This made me feel like a fitless human from Wall-E, lazy, unproductive, waiting for the AI to do the work for me. When all we had was autocomplete, a lesser version of this was dubbed [co-pilot pause](https://youtu.be/Wap2tkgaT1Q?si=XKtFnZ5hZUFhjPsG&t=62), but it's significantly worse with slower agents.
+My initial workflow with AI coding agents involved prompting them to perform a task, tabbing away to something else, and then returning a few minutes later to evaluate the results. This made me feel like a passive human from Wall-E—unproductive and just waiting for the AI to complete the work. When autocomplete was the default AI coding tool, a lesser version of this behavior was called [co-pilot pause](https://youtu.be/Wap2tkgaT1Q?si=XKtFnZ5hZUFhjPsG&t=62). The issue is even more pronounced with agents, as they force you into longer pauses since they take more time to run.
 
 ### Why worktrees pair well with AI
 
-My favorite metaphor for the worktree development process is that it's similar to how you might [hire 5 to 10 people on fiverr to do the same task](https://x.com/garrytan/status/1918027171039461435) to decide who the top performers you want to work with long term are.
+My favorite metaphor for the worktree development process is that it's similar to how you might [hire 5 to 10 people on Fiverr to do the same task](https://x.com/garrytan/status/1918027171039461435) to decide who the top performers you want to work with long term are.
 
-LLMs are stochastic systems and, even the same model with the same prompt, will almost always produce a different result each time you run it. This means that you can get more value out of AI agents by rolling out the same prompt to multiple copies of the same agentic system in parallel and trusting a good result to emerge from at least one of them by the [law of large numbers](https://en.wikipedia.org/wiki/Law_of_large_numbers). Think of it like a monte carlo simulation, where you run the same prompt multiple times and then select the best result.
+LLMs are stochastic systems, meaning that even the same model with the same prompt will almost always produce a different result each time it runs. This variability allows you to maximize the value of AI agents by deploying the same prompt to multiple instances of the same agentic system in parallel, trusting that at least one will yield a good result by the [law of large numbers](https://en.wikipedia.org/wiki/Law_of_large_numbers). It's akin to a Monte Carlo simulation, where you run the same prompt multiple times and then choose the best outcome.
 
-Worktrees allow you to do this at an automatable scale by firing off agents in parallel, each in its own completely isolated copy of your codebase. Depending on how difficult the task is, you can run more or fewer. For example, if I'm doing something difficult in Trieve's Rust backend, I would run 5. However, if I'm adding a basic react component to the frontend, I would run 2.
+Worktrees allow you to achieve this at an automatable scale by firing off agents in parallel, each in its own completely isolated copy of your codebase. Depending on the difficulty of the task, you can run more or fewer agents. For example, if I'm working on something challenging in a Rust backend, I might run 5 agents. However, if I'm adding a basic React component to the frontend, I might run just 2.
 
 ### Breaking out of my passivity
 
-AI coding agents have been touted as a force multiplier for developers, allowing us to get drastically more done in the same period of time. However, this was not my initial experience. I found myself prompting the agent to perform some task, tabbing away to something else, and then returning every few minutes to evaluate the results, re-prompt, and repeat the cycle. This made me feel like a fitless person from Wall-E.
+AI coding agents are often touted as a force multiplier for developers, enabling them to produce more working code in the same amount of time. However, this was not my initial experience. I found myself unable to get into a flow state, constantly pausing to wait for the AI to finish and feeling like I could complete the task faster manually. Yet, the promise of coding superpowers was too compelling to ignore, so I persisted.
 
-Iterating on my workflow with git worktrees completely transformed my experience. I immediately started to feel more like a powerful commanding officer, directing a fleet of AI agents to perform tasks in parallel. Many others have also found this to be the case as evidenced by [Claude Code's docs](https://docs.anthropic.com/en/docs/claude-code/tutorials#run-parallel-claude-code-sessions-with-git-worktrees), [discussion on HN](https://news.ycombinator.com/item?id=44043717), and projects like [claude squad](https://github.com/smtg-ai/claude-squad). See the threejs space below for some fun X posts about it.
+Iterating on my workflow with git worktrees completely transformed my experience. I began to feel more like a superhuman commanding officer, orchestrating a fleet of agents to brute-force solutions as needed. Many others have reported similar experiences, as evidenced by [Claude Code's documentation](https://docs.anthropic.com/en/docs/claude-code/tutorials#run-parallel-claude-code-sessions-with-git-worktrees), [discussions on Hacker News](https://news.ycombinator.com/item?id=44043717), and projects like [Claude Squad](https://github.com/smtg-ai/claude-squad). Check out the three.js space below for some fun posts about it on X!
 
 <Pile />
 
 ### We need software that makes this easier
 
-Right now, the developer experience of using massively parallel AI with worktrees is still clunky. I am manually creating git worktrees using `git worktree add -b newbranch ../path`, start a tmux session per worktree, paste Claude prompts with leader+c, run `yarn dev` for preview, review the work, re-prompt if no agents succeed, then commit, push, and create a PR.
+The current developer experience of using massively parallel AI with worktrees is cumbersome. I manually create git worktrees using `git worktree add -b newbranch ../path`, start a tmux session for each worktree, run Claude Code in the first pane, paste a prompt, use `leader+c` to open a new pane, run `yarn dev` to get a preview, switch to my browser to review, re-prompt if no agents succeed, and finally commit, push, and create a PR once I'm satisfied with the results.
 
-Thankfully, we can create software that automates this process and makes it easier to use. I think the right UX for this will be a CLI tool that thinly wraps tmux with the right `tmux send-keys` commands to create worktrees, accept changes, start dev servers, and PR. I think that Terminal UI apps (TUI's) are too heavy and function poorly since they don't cooperate with `grep`, `awk`, and `xargs` tricks.
+Thankfully, we can create software to automate this process. I believe the ideal UX for this will be a CLI tool that acts as a thin wrapper over tmux, using the appropriate `tmux send-keys` commands to create worktrees, accept changes, start dev servers, and create PRs. Terminal UI apps (TUIs) feel too heavy and often function poorly since they don't integrate well with tools like `grep`, `awk`, and `xargs`.
 
-Here are my top pain points with the manual process listed:
+Here are my top pain points with the manual process:
 
-- I can't tell what branch a worktree was most recently rebased on, super disorienting when juggling multiple agents.
-- There is no way to send the same prompt to multiple agents at once. I'm copy/pasting everything manually like an animal.
-- Setting up a shared starter state across agents is way too much work. Needs to be way easier to spawn off a non-main branch with some set of manual changes.
-- Really wish I had a shortcut to open VS Code for a given tree without having to `tmux a`, `leader + c`, `code .` manually every time.
-- Agents will often all fail in the same way and repeating the same prompt or fix across them is too repetitive. I should be able to broadcast a prompt to all at once and move on.
+- I can't tell which branch a worktree was most recently rebased onto, which is disorienting when juggling multiple agents.
+- There is no way to send the same prompt to multiple agents at once. I'm manually copy-pasting everything like an animal.
+- Setting up a shared starter state across agents is too much work. It needs to be much easier to spawn off a non-main branch with a predefined set of manual changes.
+- I really wish I had a shortcut to open VS Code for a given worktree without having to `tmux a`, `leader + c`, and `code .` manually.
+- Agents often fail in the same way, and repeating the same prompt or fix across them is too repetitive. I should be able to broadcast a followup prompt to all agents at once and move on.
+- Web previewing is a pain. I have to manually run `yarn dev` in each worktree, and then hold the mental model of which port each worktree is on. Automating a reverse proxy to handle this with a decent naming scheme would be a game-changer.
 
-Myself and my co-founder Denzell are excited enough about this that we are time-boxing a few days to build a management CLI called [uzi](https://github.com/devflowinc/uzi).
+My co-founder Denzell and I are excited enough about this problem that we are time-boxing a few days to build a management CLI called [uzi](https://github.com/devflowinc/uzi).
 
 ### Parallel-inference native software
 
-All business productivity software will eventually need to enable massively parallel inference with worktree-like systems to remain competitive in the AI-driven future. However, they will face significant challenges compared to software development tools, as most lack existing version control systems like git with features such as worktrees.
+All business productivity software will eventually need to support massively parallel inference with worktree-like systems to stay competitive in an AI-driven future. However, they will face significant challenges compared to software development tools, as most lack existing version control systems like Git with a feature similar to worktrees.
 
-Startups like [versionstory](https://www.versionstory.com/) who are building VCS's for non-tech industries are uniquely positioned to capitalize on this shift. Their expertise in versioning and branching workflows could make parallel inference not only possible but seamless, giving them a surprising edge in the vertical AI race within their respective fields.
+Startups like [versionstory](https://www.versionstory.com/), which are building version control systems for non-tech industries, are uniquely positioned to capitalize on this opportunity. Their expertise in conflict resolution workflows could make parallel inference seamless, giving them a surprising edge in the vertical AI race within their respective fields.

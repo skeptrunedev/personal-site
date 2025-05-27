@@ -66,6 +66,11 @@ const currentPath = Astro.url.pathname;
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+
+    <script
+      defer
+      data-domain="skeptrune.com"
+      src="https://plausible.trieve.ai/js/script.js"></script>
   </head>
   <body>
     <header>
@@ -74,6 +79,13 @@ const currentPath = Astro.url.pathname;
           <li><a href="/">About</a></li>
           <li><a href="/posts">Posts</a></li>
           <li><a href="/rss.xml">RSS Feed</a></li>
+          <li>
+            <a
+              href="https://skeptrune.substack.com/"
+              target="_blank"
+              rel="noopener noreferrer">Subscribe</a
+            >
+          </li>
         </ul>
         <ul>
           <li transition:persist>
@@ -98,31 +110,32 @@ const currentPath = Astro.url.pathname;
           </li>
         </ul>
       </nav>
+
+      <main>
+        <slot />
+      </main>
+      <footer>
+        <nav class="border-t mt-12">
+          <ul>
+            {
+              SocialLinks.map((link) => (
+                <li>
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="icon"
+                    aria-label={link.icon.split(":")[1]}
+                  >
+                    <Icon name={link.icon} />
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </footer>
     </header>
-    <main>
-      <slot />
-    </main>
-    <footer>
-      <nav class="border-t mt-12">
-        <ul>
-          {
-            SocialLinks.map((link) => (
-              <li>
-                <a
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="icon"
-                  aria-label={link.icon.split(":")[1]}
-                >
-                  <Icon name={link.icon} />
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
-    </footer>
   </body>
 </html>
 
