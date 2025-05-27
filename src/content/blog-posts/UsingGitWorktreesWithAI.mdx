@@ -1,8 +1,8 @@
 ---
-title: "The 'Fiverr Method' for AI: Using Git Worktrees to Run Agents in Parallel"
+title: "Using Git Worktrees for Massively Parallel AI SWE Agents"
 slug: git-worktrees-with-AI
 summary: >-
-  I spent months chasing developer superpowers with AI codegen and struggled to feel any productivity gain, then immediately found it when I started using git worktrees to run multiple instances of coding agents like Claude Code and Codex in parallel.
+  I spent months chasing developer superpowers with AI codegen and struggled to feel any productivity gain, then immediately found it when I started using git worktrees to run multiple instances of terminal-driven coding agents like Claude Code and Codex in parallel.
 author: Nicholas Khami
 createdAt: 2024-05-26T18:52:00.000Z
 updatedAt: 2024-05-26T18:52:00.000Z
@@ -21,26 +21,28 @@ This realization isn't unique to me; the effectiveness of using Git worktrees fo
 
 <Pile />
 
-### Why bother with worktrees and parallel agents?
+### Making the case for parallel codegen
 
-I like to think of the AI worktree development process like [hiring multiple freelancers on Fiverr for the same task](https://x.garrytan/status/1918027171039461435). Each freelancer works in their own environment and comes up with a unique solution to the problem. This way, you can compare outputs and select the best one, rather than relying on a single freelancer who may not fully understand your needs or deliver subpar results.
+I like to think of the parallel inference process like [hiring multiple freelancers on Fiverr for the same task](https://x.garrytan/status/1918027171039461435). Each freelancer works in their own environment and comes up with a unique solution to the problem. This way, you can compare outputs and select the best one, rather than relying on a single person who may not fully understand your needs or deliver subpar results.
 
-This process is the most effective way to leverage AI, but it's hard to achieve with standard git in a single directory. Multiple agents in one folder can overwrite each other's changes, causing confusion. [Git worktrees](https://git-scm.com/docs/git-worktrees) solve this by creating isolated working directories that share the same repository. Each worktree can have its own branch and agent, allowing you to run multiple simultaneously without interference.
+This spray and pray approach is the most effective way to leverage codegen, but hard to achieve with standard git in a single directory. Multiple agents running in one folder can overwrite each other's changes, causing confusion. [Git worktrees](https://git-scm.com/docs/git-worktrees) solve this by creating isolated working directories that share the same repository. Each worktree can have its own branch and agent, allowing you to run multiple simultaneously without them crossing wires.
 
-This approach is more complex and token-intensive than using a single agent, but it provides significant quality benefits. Since AI models are stochastic, running the same prompt multiple times produces different outputs. By running several agents in parallel with identical prompts, you create a [Monte Carlo process](https://en.wikipedia.org/wiki/Monte_Carlo_method) that lets you compare multiple solutions and choose the best one, rather than risking getting only a single potentially suboptimal result.
+This approach is more complex and token-intensive than using a single agent, but provides significant quality benefits. These coding agent systems are stochastic, so running the same prompt multiple times produces different outputs. By running several in parallel with identical prompts, you create a [Monte Carlo process](https://en.wikipedia.org/wiki/Monte_Carlo_method) that lets you compare multiple solutions and choose the best one, rather than risking getting only a single potentially suboptimal result.
 
 It's important to note that you can scale the number of parallel agents you rollout based on task complexity. For example, I typically run 5 agents for challenging Rust backend issues but only 2 for basic React components. Worktrees enable this elastic scaling without cluttering your main branch or repository. With enough worktrees and compute, you can brute force nearly any problem.
 
+However, it's early days for this approach and not much tooling exists yet.
+
 ### Current state of the art: manual worktrees and tmux
 
-I've been using git worktrees with AI agents for a while now, and while it has significantly improved my productivity, the process is still full of papercuts and inefficiencies.
+I've been using git worktrees with AI agents for a while now, and while it has significantly improved my productivity, the process is full of papercuts.
 
-Currently, I manually create git worktrees using `git worktree add -b newbranch ../path`, start a `tmux` session for each worktree, run Claude Code in the first pane, paste a prompt, use `leader+c` to open a new pane, run `yarn dev` to get a preview, switch to my browser to review, re-prompt if no agents succeed, and finally commit, push, and create a PR once I'm satisfied with the results.
+Currently, I manually create git worktrees using `git worktree add -b newbranch ../path`, start a `tmux` session for each one, run Claude Code in the first pane, paste a prompt, `leader+c` into a new pane, run `yarn dev` to get a preview, switch to my browser to review, re-prompt if no agents succeed, and finally commit, push, and create a PR once I'm satisfied with the results.
 
 Here are the top pain points:
 
 - I can't tell which branch a worktree was most recently rebased onto, which is disorienting when juggling multiple agents.
-- There is no way to send the same prompt to multiple agents at once. I'm manually copy-pasting everything like an animal.
+- There is no easy way to send the same prompt to multiple agents at once. I'm manually copy-pasting everything like an animal.
 - Setting up a shared starter state across agents is too much work. It needs to be much easier to spawn off a non-main branch with a predefined set of manual changes.
 - I really wish I had a shortcut to open VS Code for a given worktree without having to `tmux a`, `leader + c`, and `code .` manually.
 - Agents often fail in the same way, and repeating the same prompt or fix across them is too repetitive. I should be able to broadcast a followup prompt to all agents at once and move on.
@@ -69,4 +71,4 @@ Consider a company like [versionstory](https://www.versionstory.com/), which is 
 
 Similarly, a marketing team could employ this parallel strategy to perform data analysis on ad performance. By prompting multiple AI instances, they could quickly gather a range of analyses, review them, and select the most insightful ones to inform their strategy. More coverage of the solution space leads to better decision-making and more effective campaigns.
 
-This parallel paradigm isn't just a new technique for developers; it's a glimpse into a more efficient, robust, and powerful future for AI-assisted productivity across various fields. I expect to see existing software products start to gain more powerful version control and parallel execution capabilities which emulate the workflow enabled by git worktrees for software and enable this "Fiverr Method" for AI across industries.
+This parallel paradigm isn't just a new technique for developers; it's a glimpse into a more efficient, robust, and powerful future for AI-assisted productivity across various fields. I expect to see existing software products start to gain more powerful version control and parallel execution capabilities which emulate the workflow enabled by git worktrees for software and enable this "AI Fiverr Method" for AI across industries.
