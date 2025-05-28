@@ -1,5 +1,5 @@
 ---
-title: "LLM Codegen go Brrr – Git Worktrees + Tmux"
+title: "LLM Codegen go Brrr – Parallelization with Git Worktrees and Tmux"
 slug: git-worktrees-agents-and-tmux
 summary: >-
   If you're underwhelmed with AI coding agents or simply want to get more out of them, give parallelization a try. After seeing the results firsthand over the past month, I'm ready to call myself an evangelist. The throughput improvements are incredible, and I don't feel like I'm losing control of the codebase.
@@ -52,9 +52,9 @@ Here are the top frustrations:
 
 I feel like I've been through the wringer enough times with this process that I can see a solution shape which would create a smoother experience.
 
-### Proposing a solution: *uzi*
+### Proposing a solution: _uzi_
 
-To address these challenges head-on, the ideal developer experience (DX) would involve a lightweight CLI that wraps tmux, automating this complex orchestration. My co-founder Denzell and I felt these pain points acutely enough that we've begun developing such a tool, which we're calling [*uzi*](https://github.com/devflowinc/uzi). The core idea behind *uzi* is to abstract away the manual, repetitive tasks involved in managing multiple AI agent worktrees.
+To address these challenges head-on, the ideal developer experience (DX) would involve a lightweight CLI that wraps tmux, automating this complex orchestration. My co-founder Denzell and I felt these pain points acutely enough that we've begun developing such a tool, which we're calling [_uzi_](https://github.com/devflowinc/uzi). The core idea behind _uzi_ is to abstract away the manual, repetitive tasks involved in managing multiple AI agent worktrees.
 
 See some of the `uzi` commands we are thinking to implement below. Our goal is to make the workflow more seamless while sticking closely to the existing mechanics of worktres and tmux. We want to make sure that we feel at home using `uzi` alongside standard unix tools like `xargs`, `grep`, and `awk`.
 
