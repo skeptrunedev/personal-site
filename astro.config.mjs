@@ -27,6 +27,9 @@ export default defineConfig({
     },
     plugins: [tailwindcss()],
   },
+  redirects: {
+    "/posts/git-worktrees-with-AI/": "/posts/git-worktrees-agents-and-tmux/",
+  },
   experimental: {
     fonts: [
       {
