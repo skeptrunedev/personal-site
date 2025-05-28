@@ -1,8 +1,8 @@
 ---
-title: "Software development superpowers with git worktrees, tmux, and parallel agents"
+title: "Multiplex LLM Codegen with Git Worktrees, Agents, and Tmux"
 slug: git-worktrees-agents-and-tmux
 summary: >-
-  If you feel underwhelmed with AI codegen products or just want more out of them, you should give git worktrees and parallel inference a shot. I'm willing to call myself an evangelist after seeing the results firsthand over the past month. Throughput improvements are incredible and I don't feel like I'm losing control of the codebase.
+  If you are feeling underwhelmed with AI SWE agent products or just want more out of them, you should give git worktrees and parallel inference a shot. I'm willing to call myself an evangelist after seeing the results firsthand over the past month. Throughput improvements are incredible and I don't feel like I'm losing control of the codebase.
 author: Nicholas Khami
 createdAt: 2024-05-26T18:52:00.000Z
 updatedAt: 2024-05-26T18:52:00.000Z
@@ -19,19 +19,20 @@ import Pile from "../../components/blog/UsingGitWorktreesWithAI/Pile.astro";
 
 This realization isn't unique to me; the effectiveness of using Git worktrees for simultaneous execution is gaining broader recognition, as evidenced by mentions in [Claude Code's docs](https://docs.anthropic.com/en/docs/claude-code/tutorials#run-parallel-claude-code-sessions-with-git-worktrees), [discussion on Hacker News](https://news.ycombinator.com/item?id=44043717), projects like [Claude Squad](https://github.com/smtg-ai/claude-squad), and conversation on [X](https://x.com/search?q=git%20worktree&src=typed_query&f=live).
 
+<br></br>
 <Pile />
 
 ### Personal example building a UI component
 
 I am building a component library called [astrobits](https://astrobits.dev) and wanted to add a `Toggle` component. To tackle the task, I rolled out two [Claude Code](https://www.anthropic.com/claude-code) and two [Codex](https://openai.com/index/introducing-codex/) agents, each running in parallel within their own isolated [git worktrees](https://git-scm.com/docs/git-worktrees). Worktrees are essential because they provide each agent with an isolated working directory. Without this isolation, agents would overwrite each other's changes, creating confusion and wasted effort.
 
-Number of agents I choose to run depends on the complexity of the task. For simpler tasks, two agents are usually sufficient. For moderately complex tasks, three to five agents work well. For the most challenging tasks, six or more agents may be necessary. Over time, you'll develop an intuition for estimating the right number of agents based on the task at hand. Here, I felt like 4 was appropriate.
-
-Voila, results! Only one of the four agents produced a solution that actually saved me time. I probably needed to run more agents, but it's fine. Before parallel agents, I would have gotten a single output that didn't work and then likely give up and do it myself. Now, I have a working solution that I can build on and feel that AI is awesome. It's also not much more expensive in terms of cost magnitude, we are talking going from $0.10 to $0.40 for the task, which is a drop in the bucket compared to the value of the time saved.
+The number of agents I choose to run depends on the complexity of the task. For simpler tasks, 2 agents are usually sufficient. For moderately complex tasks, 3-5 agents work well. For the most challenging tasks, 6 or more agents may be necessary. Over time, you'll develop an intuition for estimating the right number of agents based on the task at hand. Here, I felt like 4 was appropriate.
 
 <ImageFourSquareWorktrees />
 
-If the tooling were better, I could have just re-ran the process from scratch with 8 agents instead of having to do any manual work whatsoever. Low-level day to day of using parallel agents is still far from a frictionless experience.
+Voila, results! Only one of the four agents produced a solution that actually saved me time. I probably needed to run more agents, but it's fine. Before parallel agents, I would have gotten a single output that didn't work and then likely give up and do it myself. Now, I have a working solution that I can build on and feel that AI is awesome. It's also not much more expensive in terms of cost magnitude, we are talking going from $0.10 to $0.40 for the task, which is a drop in the bucket compared to the value of the 20 minutes saved.
+
+If the tooling were better, I could have just re-ran the process from scratch with 8 agents instead of having to do any manual work whatsoever. The mechanics of using parallel agents is still far from a frictionless experience.
 
 ### Raw workflow pain points
 
@@ -39,18 +40,19 @@ Currently, I manually create git worktrees using `git worktree add -b newbranch 
 
 Here are the top pain points:
 
-- I can't tell which branch a worktree was most recently rebased onto, which is disorienting when juggling multiple agents.
-- There is no easy way to send the same prompt to multiple agents at once. I'm manually copy-pasting everything like an animal.
-- Setting up a shared starter state across agents is too much work. It needs to be much easier to spawn off a non-main branch with a predefined set of manual changes.
-- I really wish I had a shortcut to open VS Code for a given worktree without having to `tmux a`, `leader + c`, and `code .` manually.
-- Agents often fail in the same way, and repeating the same prompt or fix across them is too repetitive. I should be able to broadcast a followup prompt to all agents at once and move on.
+- I can't tell which branch a worktree was most recently rebased onto. For example, if `agent-1` was rebased onto `feature-x` but `agent-2` onto `main`, it's easy to lose track without manual notes.
+- There is no easy way to send the same prompt to multiple agents at once. For instance, if all agents are stuck on the same misunderstanding of the requirements, I have to manually copy-paste the clarification into each session.
+- I really wish I had a shortcut to open my IDE for a given worktree without having to `tmux a`, `leader + c`, and `code .` manually. I could use `tmux send-keys and xargs` to automate this, but it still feels clunky.
 - Web previewing is a pain. I have to manually run `yarn dev` in each worktree, and then hold the mental model of which port each worktree is on. Automating a reverse proxy to handle this with a decent naming scheme would be a game-changer.
+- Committing and creating pull requests (PRs) is also more cumbersome than it should be. For example, after finding a solution in `agent-3`, I have to manually attach to that tmux session then `commit`, `push`, and `gh pr`.
+
+I feel like I've been through the wringer enough times with this process that I can see a solution shape which would create a smoother experience.
 
 ### Proposing a solution: `uzi`
 
 To address these challenges head-on, the ideal developer experience (DX) would involve a lightweight CLI that wraps tmux, automating this complex orchestration. My co-founder Denzell and I felt these pain points acutely enough that we've begun developing such a tool, which we're calling [uzi](https://github.com/devflowinc/uzi). The core idea behind `uzi` is to abstract away the manual, repetitive tasks involved in managing multiple AI agent worktrees.
 
-For example, `uzi` aims to simplify common operations:
+See some of the `uzi` commands we are thinking to implement below. Our goal is to make the workflow more seamless while sticking closely to the existing mechanics of worktres and tmux. We want to make sure that we feel at home using `uzi` alongside standard unix tools like `xargs`, `grep`, and `awk`.
 
 - `uzi start --agents claude:3,codex:2 --prompt "Implement feature X"` could initialize and prompt three Claude instances and two Codex instances, each in its own worktree.
 - `uzi ls` would display all active agents, their target branches, and current statuses.
@@ -70,3 +72,5 @@ Consider a company like [versionstory](https://www.versionstory.com/), which is 
 Similarly, a marketing team could employ this parallel strategy to perform data analysis on ad performance. By prompting multiple AI instances, they could quickly gather a range of analyses, review them, and select the most insightful ones to inform their strategy. More coverage of the solution space leads to better decision-making and more effective campaigns.
 
 This parallel paradigm isn't just a new technique for developers; it's a glimpse into a more efficient, robust, and powerful future for AI-assisted productivity across various fields. I expect to see existing software products start to gain more powerful version control and parallel execution capabilities which emulate the workflow enabled by git worktrees for software and enable this "AI Fiverr Method" for AI across industries.
+
+My DMs are open if you want to chat about this topic or have any questions. I'm happy to discuss.

@@ -1,0 +1,186 @@
+---
+const imagesFromWorktreeProofs = Object.values(
+  import.meta.glob(
+    "../../../assets/images/worktree-proofs/*.{jpeg,jpg,png,webp,gif,svg,avif}",
+    { eager: true }
+  )
+);
+
+const imagesToDisplay: ImageMetadata[] = imagesFromWorktreeProofs
+  .map((image) => {
+    return (image as any)?.default;
+  })
+  .filter((image) => image && image.src && image.width && image.height);
+---
+
+<div class="relative w-full">
+  <div
+    id="three-gallery-container"
+    class="w-full h-[30vh] bg-neutral-900 rounded-2xl overflow-hidden"
+    data-images={JSON.stringify(imagesToDisplay)}
+  >
+  </div>
+  <button
+    id="reset-view-btn"
+    class="mt-2 px-4 py-2 bg-neutral-800 text-white rounded hover:bg-neutral-700 transition text-xs"
+    style="position: absolute; top: 1rem; right: 1rem; z-index: 10;"
+  >
+    Reset View
+  </button>
+  <div class="text-center text-xs text-neutral-500 mt-2 w-4/5 mx-auto">
+    I had to vibe code <i>something</i> for this post haha. Use mouse or touch to
+    rotate and zoom. Click "Reset View" to return to the initial angle.
+  </div>
+</div>
+
+<script>
+  import * as THREE from "three";
+  import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
+  function renderThree() {
+    const container = document.getElementById("three-gallery-container");
+    if (!container) return;
+    const imagesToDisplay = container?.dataset?.images
+      ? JSON.parse(container.dataset.images)
+      : [];
+
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    // Scene, Camera, Renderer
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x111111);
+
+    // Add ambient light for general illumination
+    const ambientLight = new THREE.AmbientLight(0x333333);
+    scene.add(ambientLight);
+
+    // Add directional light for subtle shadows and highlights
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 5, 7);
+    scene.add(directionalLight);
+
+    // Add grid helper for visual reference
+    const gridSize = 40;
+    const gridDivisions = 20;
+    const gridHelper = new THREE.GridHelper(
+      gridSize,
+      gridDivisions,
+      0x444444,
+      0x222222
+    );
+    gridHelper.position.y = -8; // Position grid below the image cluster
+    gridHelper.position.z = -5; // Position grid behind the y-axis
+    scene.add(gridHelper);
+
+    const camera = new THREE.PerspectiveCamera(10, width / height, 0.1, 1000);
+    // Change the initial camera position to be at an angle
+    camera.position.set(12, 5, 15);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Improve rendering quality
+    container.appendChild(renderer.domElement);
+
+    // Controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.1;
+    controls.minDistance = 0;
+    controls.maxDistance = 50;
+    controls.enablePan = true;
+    controls.panSpeed = 0.8;
+    controls.screenSpacePanning = true;
+    // Set the controls target to focus slightly offset from center
+    controls.target.set(0, 0, 0);
+
+    const planeWidth = 4;
+
+    // Cluster settings
+    const clusterRadius = 4; // <-- Denser cluster (was 12)
+
+    imagesToDisplay.forEach((img: ImageMetadata) => {
+      const textureLoader = new THREE.TextureLoader();
+
+      // Apply texture settings for sharper text
+      const texture = textureLoader.load(img.src);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+      const aspect = img.width / img.height;
+      const w = planeWidth;
+      const h = planeWidth / aspect;
+
+      const geometry = new THREE.PlaneGeometry(w, h);
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+        transparent: true,
+      });
+
+      // Cluster position
+      const phi = Math.acos(2 * Math.random() - 1);
+      const theta = 2 * Math.PI * Math.random();
+      const r = clusterRadius * (0.7 + 0.3 * Math.random());
+
+      // Front-facing mesh
+      const meshFront = new THREE.Mesh(geometry, material);
+      meshFront.position.x = r * Math.sin(phi) * Math.cos(theta);
+      meshFront.position.y = r * Math.sin(phi) * Math.sin(theta);
+      meshFront.position.z = r * Math.cos(phi);
+
+      // Add border frame to the image
+      const borderWidth = 0.1;
+      const frameGeometry = new THREE.BoxGeometry(
+        w + borderWidth,
+        h + borderWidth,
+        0.05
+      );
+      const frameMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.7,
+        metalness: 0.1,
+      });
+      const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+      frame.position.copy(meshFront.position);
+      frame.position.z -= 0.03; // Slightly behind the image
+      frame.rotation.copy(meshFront.rotation);
+
+      scene.add(frame);
+      scene.add(meshFront);
+    });
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Responsive resize
+    window.addEventListener("resize", () => {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    });
+
+    // Reset view button
+    const resetBtn = document.getElementById("reset-view-btn");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", () => {
+        // Update reset position to match the angled view
+        camera.position.set(12, 5, 15);
+        controls.target.set(0, 0, 0);
+        controls.update();
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", renderThree);
+  document.addEventListener("astro:after-swap", () => renderThree());
+  document.addEventListener("astro:page-load", () => renderThree());
+</script>

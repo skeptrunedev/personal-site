@@ -1,0 +1,94 @@
+---
+import { Image } from "astro:assets";
+
+export interface ImageAndDescription {
+  image: ImageMetadata;
+  description: string;
+}
+
+const imagesGitWorktrees = Object.values(
+  import.meta.glob(
+    "../../../assets/images/blog-posts/UsingGitWorktreesWithAI/*.{jpeg,jpg,png,webp,gif,svg,avif}",
+    { eager: true }
+  )
+);
+
+const images: ImageAndDescription[] = imagesGitWorktrees
+  .map((image) => {
+    const description = (() => {
+      const src = (image as any)?.default?.src || "";
+      if (src.includes("4320-attempt.png")) {
+        return "<code>claude-1</code>. Mostly <b>correct</b>, workable, but pixelated border-image and shadow needs fixing.";
+      } else if (src.includes("4321-attempt.png")) {
+        return "<code>claude-2</code>. Completely <b>broken</b>, sliding circle too small, wrong color.";
+      } else if (src.includes("4323-attempt.png")) {
+        return "<code>codex-1</code>. Very <b>wrong</b> Shadow on top, active state wrong side.";
+      } else if (src.includes("4324-attempt.png")) {
+        return "<code>codex-2</code>. Is <b>unusable</b> circle color, active side incorrect, broken.";
+      } else {
+        return "No description provided";
+      }
+    })();
+
+    return {
+      image: (image as any)?.default,
+      description: description,
+    } as ImageAndDescription;
+  })
+  .filter(
+    (imageAndDescription) =>
+      imageAndDescription.image &&
+      imageAndDescription.image.src &&
+      imageAndDescription.image.src.includes("-attempt")
+  );
+---
+
+<div class="image-four-square-container">
+  {
+    images.map((item) => (
+      <div class="image-card">
+        <Image src={item.image} alt="Worktree example run toggle image" />
+        <p class="description" set:html={item.description} />
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .image-four-square-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 1rem;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .image-card {
+    display: flex;
+    flex-direction: column;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+
+  img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    aspect-ratio: square;
+  }
+
+  .description {
+    padding: 0.5rem;
+    margin: 0;
+    font-size: 0.875rem;
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    .image-four-square-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
