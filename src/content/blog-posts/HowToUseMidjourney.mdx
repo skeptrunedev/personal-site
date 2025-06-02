@@ -41,7 +41,7 @@ You can't just start by describing the specific kind of image you want and expec
 
 It's unlikely that you'll be able to find multiple images on the internet which match your desired style exactly, so I recommend using neutral prompts to generate additional images in order to create a cohesive gallery.
 
-My neutral prompt here was `Portrait photography of a woman, glow behind, futuristic vibe, flash photography, color film, analog style, imperfect --ar 3:4 --v 7`. Essentially, any prompt describing a general subject and its characteristics—without getting too specific about style, camera angle, action, or other details—should work well.
+My neutral prompt here was `Portrait photography of a woman, glow behind, futuristic vibe, flash photography, color film, analog style, imperfect --ar 3:4 --v 7`. Essentially, any prompt describing a general subject and its characteristics without getting too specific about style, camera angle, action, or other details should work well.
 
 <SimilarStyleGeneration />
 
@@ -55,13 +55,13 @@ You can take any one of these and pair them with the style reference images you 
 
 <EaglePromptWithStyleReference />
 
-## Post-Processing: Adding Film Grain for Web Design
+## Post Processing: Adding Film Grain for Web Design
 
 Midjourney produces images which are too crisp to fit well as background images for the web. I recommend adding grain to them when you put them into your final site to create a more cohesive feel. If done correctly, you'll end up with a result that looks like the below. CSS is great for this! See a complete guide of how I applied the filter for the [uzi.sh](https://uzi.sh) site below, [full code on Github here](https://github.com/devflowinc/uzi/blob/main/uzi-site/index.html).
 
 [![Film Grain on Uzi Site](src/assets/images/blog-posts/HowToUseMidjourney/uzi-opengraph.png)](https://uzi.sh)
 
-You first need to add a svg filter definition to your HTML file such that the CSS can reference it later to put the grain on top of the background image. The filter uses `feTurbulence` to create a fractal noise pattern, and `feColorMatrix` to adjust the opacity. You can experiment with values like `baseFrequency` in `feTurbulence` or the alpha channel (the `0.8` in the `feColorMatrix`) to fine-tune the grain's intensity and texture.
+You first need to add a svg filter definition to your HTML file such that the CSS can reference it later to put the grain on top of the background image. The filter uses `feTurbulence` to create a fractal noise pattern, and `feColorMatrix` to adjust the opacity. You can experiment with values like `baseFrequency` in `feTurbulence` or the alpha channel (the `0.8` in the `feColorMatrix`) to finetune the grain's intensity and texture.
 
 ```html
 <!-- SVG noise filter definition - this goes in your HTML -->
@@ -135,8 +135,8 @@ Finally, you need to structure your HTML to ensure the layering works correctly.
 
 ## Be Creative!
 
-While there's ongoing debate about AI-generated art, I see Midjourney as just another tool in the toolkit. The key is using it to bring your vision to life, not to replace your creativity.
+While there's ongoing debate about AI generated art, I see Midjourney as just another tool in the toolkit. The key is using it to bring your vision to life, not to replace your creativity.
 
-Take inspiration from what you see, but make it your own. Use AI to bridge the gap between the style you have in your head and what actually shows up on screen. The techniques I've shared here—building style references, using the describe feature, adding your own post-processing—these are all about developing your unique voice and letting AI help you express it better.
+Take inspiration from what you see, but make it your own. Use AI to bridge the gap between the style you have in your head and what actually shows up on screen. The techniques I've shared here are all about developing your unique voice and letting AI help you express it better.
 
-The goal isn't to generate something generic. It's to create images that actually work for your projects and feel intentional, not obviously AI-generated.
+The goal isn't to generate something generic. It's to create images that actually work for your projects and feel intentional, not obviously AI generated.
