@@ -1,0 +1,62 @@
+---
+import { Image } from "astro:assets";
+
+export interface ImageAndDescription {
+  image: ImageMetadata;
+  description: string;
+}
+
+const midjourneyImages = Object.values(
+  import.meta.glob<{ default: ImageMetadata }>(
+    "../../../assets/images/blog-posts/HowToUseMidjourney/styleguide/*.{jpeg,jpg,png,webp,gif,svg,avif}",
+    { eager: true }
+  )
+).map((module) => module.default);
+---
+
+<div class="max-h-[400px] overflow-y-auto">
+  <div class="masonry-grid">
+    {
+      midjourneyImages.map((img) => (
+        <div class="masonry-item">
+          <Image src={img} alt="Midjourney generated image" loading="lazy" />
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .masonry-grid {
+    column-count: 3; /* Adjust column count as needed */
+    column-gap: 1em;
+    overflow-y: auto;
+  }
+
+  .masonry-item {
+    background-color: #eee; /* Optional: for item visibility */
+    display: inline-block;
+    margin: 0 0 1em;
+    width: 100%;
+    break-inside: avoid; /* Prevents items from breaking across columns */
+  }
+
+  .masonry-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 900px) {
+    .masonry-grid {
+      column-count: 2;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .masonry-grid {
+      column-count: 1;
+    }
+  }
+</style>

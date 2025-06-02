@@ -1,0 +1,142 @@
+---
+title: "How to Use Midjourney - Web Dev's Starter Guide"
+slug: how-to-use-midjourney
+summary: >-
+  Midjourney's learning curve is steep, but climbing it unlocks a superpower for developers and entrepreneurs. Learn how to create stunning, cohesive image sets that actually work for your projects. Go from building style reference galleries to using the describe feature for professional marketing visuals that don't scream "AI-generated."
+author: Nicholas Khami
+createdAt: 2025-06-01T18:52:00.000Z
+updatedAt: 2025-06-01T18:52:00.000Z
+coverImage: src/assets/images/blog-posts/HowToUseMidjourney/uzi-opengraph.png
+displayCoverImage: false
+isDraft: false
+isFeatured: true
+categories:
+  - ai
+  - art
+---
+
+import MasonryImages from "../../components/blog/HowToUseMidjourney/MasonryImages.astro";
+import PinterestStarter from "../../components/blog/HowToUseMidjourney/PinterestStarter.astro";
+import SimilarStyleGeneration from "../../components/blog/HowToUseMidjourney/SimilarStyleGeneration.astro";
+import DescribeFeature from "../../components/blog/HowToUseMidjourney/DescribeFeature.astro";
+import EaglePromptWithStyleReference from "../../components/blog/HowToUseMidjourney/EaglePromptWithStyleReference.astro";
+
+## Background and Motivation
+
+I tried to use Midjourney unsuccessfully a few times before, but decided to give it one more try after reading a good tutorial thread on [X by @kubadesign](https://x.com/kubadesign/status/1927056777830440980). His thread got me most of the way there, but I picked up an additional trick with [Midjourney's describe feature](https://docs.midjourney.com/hc/en-us/articles/32497889043981-Describe) that I think is worth sharing.
+
+## Results From My Recent Attempt
+
+I was initially going to use these for [uzi.sh](https://uzi.sh) which is a tool for parallel LLM coding agents, but ended up going with a different final image since I only needed. However, given that, I wanted a red color scheme to inspire action and speed, so went that direction with the images below.
+
+<MasonryImages />
+
+## Find a Base Image
+
+Following Kuba's advice, I went to pinterest and found a cool base image that I liked. I went with something that had a lot of red, but also darker colors on the border since I knew that I would need space for text and other elements if I wanted to use these on an actual website.
+
+<PinterestStarter />
+
+## Build a Style With Neutral Prompts
+
+You can't just start by describing the specific kind of image you want and expect to get good results. [Style reference images](https://docs.midjourney.com/hc/en-us/articles/32180011136653-Style-Reference) are needed to give Midjourney the boundaries it needs to stick to your desired aesthetic and theme once you get more specific with your exact asks.
+
+It's unlikely that you'll be able to find multiple images on the internet which match your desired style exactly, so I recommend using neutral prompts to generate additional images in order to create a cohesive gallery.
+
+My neutral prompt here was `Portrait photography of a woman, glow behind, futuristic vibe, flash photography, color film, analog style, imperfect --ar 3:4 --v 7`. Basically anything which describes a general subject and characteristics without specificity on style, camera angle, action, or other details will work.
+
+<SimilarStyleGeneration />
+
+## Using Describe to Get More Specific
+
+One of the images I wanted was an eagle diving. However, `eagle diving with red glowing background` wasn't getting me the results I wanted. I accidentally discovered the describe feature dragging images around, and instantly realized that it was a cheat code for getting the images I wanted.
+
+<DescribeFeature />
+
+You can take any one of these and pair them with the style reference images you generated earlier to get the eagle or any other image you described into the style you want. I could not believe how well this worked.
+
+<EaglePromptWithStyleReference />
+
+## Post-Processing: Adding Film Grain for Web Design
+
+Midjourney produces images which are too crisp to fit well as background images for the web. I recommend adding grain to them when you put them into your final site to create a more cohesive feel. If done correctly, you'll end up with a result that looks like the below. CSS is great for this! See a complete guide of how I applied the filter for the [uzi.sh](https://uzi.sh) site below, [full code on Github here](https://github.com/devflowinc/uzi/blob/main/uzi-site/index.html).
+
+[![Film Grain on Uzi Site](src/assets/images/blog-posts/HowToUseMidjourney/uzi-opengraph.png)](https://uzi.sh)
+
+You first need to add a svg filter definition to your HTML file such that the CSS can reference it later to put the grain on top of the background image. The filter uses `feTurbulence` to create a fractal noise pattern, and `feColorMatrix` to adjust the opacity.
+
+```html
+<!-- SVG noise filter definition - this goes in your HTML -->
+<svg style="display: none">
+  <filter id="noiseFilter">
+    <!-- Creates the fractal noise pattern -->
+    <feTurbulence
+      type="fractalNoise"
+      baseFrequency="0.5"
+      numOctaves="3"
+      stitchTiles="stitch"
+    />
+    <!-- Converts noise to semi-transparent overlay -->
+    <feColorMatrix
+      type="matrix"
+      values="0 0 0 0 0
+              0 0 0 0 0
+              0 0 0 0 0
+              0 0 0 0.8 0"
+    />
+  </filter>
+</svg>
+```
+
+Once you have the filter defined, you can apply it to a grain overlay element in your CSS. This element will cover the background image and apply the noise effect.
+
+```css
+/* The grain overlay element that applies the filter */
+.grain-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2; /* Above background image, below content */
+  pointer-events: none; /* Allows clicks to pass through to elements below */
+  filter: url(#noiseFilter); /* Applies the SVG filter defined above */
+}
+
+/* Background image styling for context */
+.background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("./media/16x9steppecommander.png");
+  background-size: cover;
+  background-position: center;
+  z-index: 1; /* Below grain overlay */
+}
+```
+
+Finally, you need to structure your HTML to ensure the layering works correctly. The grain overlay should be positioned above the background image but below any content you want to display.
+
+```html
+<!-- HTML structure showing the layering -->
+<div class="hero">
+  <!-- Layer 1: Background image (z-index: 1) -->
+  <div class="background-image"></div>
+
+  <!-- Layer 2: Grain overlay (z-index: 2) -->
+  <div class="grain-overlay" style="filter: url(#noiseFilter)"></div>
+
+  <!-- Layer 3: Content (z-index: 3) -->
+  <div class="content-center">
+    <!-- Your content here -->
+  </div>
+</div>
+```
+
+## Be Creative!
+
+I have heard general discussion and worry about AI-generated art stealing from artists, but it is important to remember that AI is a tool. It can be used to create new things, and it can be used to create derivative works. I think the best way to use AI is to use it as a tool to enhance your own creativity, not as a replacement for it.
+
+Use what you see from others to inspire your own work, but don't just copy and paste. Use AI to create get the unique style in your head out onto the screen. Develop your own voice and vision, and let AI help you express it.
