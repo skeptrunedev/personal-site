@@ -30,7 +30,9 @@ const midjourneyImages = Object.values(
   .masonry-grid {
     column-count: 3; /* Adjust column count as needed */
     column-gap: 1em;
-    overflow-y: auto;
+    /* overflow-y: auto; */ /* Removed, as parent div handles y-overflow */
+    width: 100%; /* Ensure the grid takes the full width of its parent */
+    box-sizing: border-box; /* Include padding and border in the element's total width */
   }
 
   .masonry-item {
@@ -45,18 +47,5 @@ const midjourneyImages = Object.values(
     width: 100%;
     height: auto;
     display: block;
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 900px) {
-    .masonry-grid {
-      column-count: 2;
-    }
-  }
-
-  @media (max-width: 600px) {
-    .masonry-grid {
-      column-count: 1;
-    }
   }
 </style>
