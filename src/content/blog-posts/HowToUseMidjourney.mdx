@@ -27,7 +27,7 @@ I tried to use Midjourney unsuccessfully a few times before, but decided to give
 
 ## Results From My Recent Attempt
 
-I was initially going to use these for [uzi.sh](https://uzi.sh) which is a tool for parallel LLM coding agents, but ended up going with a different final image since I only needed. However, given that, I wanted a red color scheme to inspire action and speed, so went that direction with the images below.
+I initially planned to use these images for [uzi.sh](https://uzi.sh), a tool for parallel LLM coding agents. While I ultimately chose a different final image for that project because I only needed one, the learning process was valuable. For this set, I aimed for a red color scheme to evoke action and speed, which you can see in the images below.
 
 <MasonryImages />
 
@@ -43,7 +43,7 @@ You can't just start by describing the specific kind of image you want and expec
 
 It's unlikely that you'll be able to find multiple images on the internet which match your desired style exactly, so I recommend using neutral prompts to generate additional images in order to create a cohesive gallery.
 
-My neutral prompt here was `Portrait photography of a woman, glow behind, futuristic vibe, flash photography, color film, analog style, imperfect --ar 3:4 --v 7`. Basically anything which describes a general subject and characteristics without specificity on style, camera angle, action, or other details will work.
+My neutral prompt here was `Portrait photography of a woman, glow behind, futuristic vibe, flash photography, color film, analog style, imperfect --ar 3:4 --v 7`. Essentially, any prompt describing a general subject and its characteristics—without getting too specific about style, camera angle, action, or other details—should work well.
 
 <SimilarStyleGeneration />
 
@@ -63,7 +63,7 @@ Midjourney produces images which are too crisp to fit well as background images 
 
 [![Film Grain on Uzi Site](src/assets/images/blog-posts/HowToUseMidjourney/uzi-opengraph.png)](https://uzi.sh)
 
-You first need to add a svg filter definition to your HTML file such that the CSS can reference it later to put the grain on top of the background image. The filter uses `feTurbulence` to create a fractal noise pattern, and `feColorMatrix` to adjust the opacity.
+You first need to add a svg filter definition to your HTML file such that the CSS can reference it later to put the grain on top of the background image. The filter uses `feTurbulence` to create a fractal noise pattern, and `feColorMatrix` to adjust the opacity. You can experiment with values like `baseFrequency` in `feTurbulence` or the alpha channel (the `0.8` in the `feColorMatrix`) to fine-tune the grain's intensity and texture.
 
 ```html
 <!-- SVG noise filter definition - this goes in your HTML -->
@@ -139,4 +139,4 @@ Finally, you need to structure your HTML to ensure the layering works correctly.
 
 I have heard general discussion and worry about AI-generated art stealing from artists, but it is important to remember that AI is a tool. It can be used to create new things, and it can be used to create derivative works. I think the best way to use AI is to use it as a tool to enhance your own creativity, not as a replacement for it.
 
-Use what you see from others to inspire your own work, but don't just copy and paste. Use AI to create get the unique style in your head out onto the screen. Develop your own voice and vision, and let AI help you express it.
+Use what you see from others to inspire your own work, but don't just copy and paste. Use AI to get the unique style in your head out onto the screen. Develop your own voice and vision, and let AI help you express it.
