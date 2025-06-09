@@ -1,0 +1,102 @@
+---
+title: "Someone Needs To Implement FROST, ROAST, and POS into a thing"
+slug: how-to-use-midjourney
+summary: >-
+  "TBD"
+author: Nicholas Khami
+createdAt: 2025-06-01T18:52:00.000Z
+updatedAt: 2025-06-01T18:52:00.000Z
+coverImage: src/assets/images/blog-posts/HowToUseMidjourney/uzi-opengraph.png
+displayCoverImage: false
+isDraft: false
+isFeatured: true
+categories:
+  - ai
+  - art
+---
+
+## People Have Big Bitcoin Visions
+
+Researchers published the theory required for building decentralized applications on Bitcoin 3 years ago in 2022. However, since then, no one has buckled down and done the engineering work to implement it into a working protocol.
+
+## ZeroDAO
+
+ZeroDAO was the first startup I ever worked at. I believed in the vision to enough of an extent that I worked on it part-time on top of being a full-time student and full-time employee at NelNet. See, at the time, I was seeing the ancient ACH and credit card system every day at NelNet while working in their payments services department and I was convinced crypto was a better way to do payments. Stablecoins were viable, ETH was viable, SOL was viable, but Bitcoin was not.
+
+Bitcoin moves slow. It takes 10 minutes for a block to be appended to the chain and then you have to wait for 6 blocks before you can consider a transaction final. This is not idea for payments. You can't decide to buy a coffee and then wait 60 minutes for the transaction to be final. You need to be able to pay instantly.
+
+Idea for ZeroDAO was to build a lending layer on top of Bitcoin which would allow BTC holders to accept the risk of the transaction being replaced during the confirmation period in exchange for a fee. You could send a Bitcoin transaction to the ZeroDAO protocol's vault on the Bitcoin network and then the protocol would issue you USDC on the chain of your choice beyond after a single confirmation on the Bitcoin network. This way, you could pay for your coffee with USDC and the merchant would receive the USDC instantly, while the ZeroDAO protocol would take on the risk of the transaction being replaced.
+
+Benefit to the payer is that they can pay instantly. Benefit to ZeroDAO is that they can earn a fee for taking on the risk of the transaction being replaced. Benefit to the merchant is that they receive USDC instantly, which they can then convert to fiat if they choose.
+
+We built this and it worked live! [Between 2022-04-17 and 2022-12-16, we had processed 154.207 BTC worth $16,102,799.14](https://dune.com/queries/5246861/8621995?sidebar=none) at the time of writing. We were able to get the protocol to work with a single confirmation on the Bitcoin network, which was a huge achievement.
+
+Unfortunately, it was not decentralized. We had a single, centralized, point of failure in the form of another protocol called RenVM which we used to bridge Bitcoin to other chains. RenVM was a bridging protocol which allowed you to send Bitcoin to an address on the Bitcoin network and then receive a wrapped version of that Bitcoin on another chain, such as Ethereum or Solana. This was a great way to get Bitcoin onto other chains, but it was not decentralized.
+
+RenVM was a single point of failure. If RenVM went down, then ZeroDAO would go down with it. Unfortunately, RenVM did go down during the [FTX collapse in November 2022](https://x.com/renprotocol/status/1600559366440390657). This was a huge blow to ZeroDAO and we were not able to recover from it. We had to shut down the protocol and I had to move on.
+
+## Wait, so RenVM was also centralized?
+
+Yes, so RenVM had a vault holding Bitcoin and then some software which would automatically issue wrapped Bitcoin on other chains to the address indicated by the depositor who sent the Bitcoin to the RenVM vault. However, the RenVM vault was effectively controlled by a single entity, the RenVM team. This meant that if the RenVM team decided to stop operating the vault, then the entire protocol would be shut down. This is exactly what happened during the FTX collapse in November 2022. The RenVM team decided to stop operating the vault and the entire protocol was shut down.
+
+It also meant, that while it was operating, the RenVM team could rug pull and steal all the Bitcoin in the vault at any time. In November 2022, at its peak, the RenVM vault held $1.128 billion worth of Bitcoin. This was a huge amount of Bitcoin and it was all controlled by a single entity.
+
+Thankfully, the RenVM team did not rug pull and they did not steal the Bitcoin in the vault. They were a good team and they were trying to do the right thing, but they were not decentralized and they were not what Bitcoin is about.
+
+## Better is possible
+
+In [2017, when RenVM was founded](https://www.indexcoop.com/blog/dpi-token-guide-ren), there was no way to build a decentralized vault on Bitcoin. Decentralized vaults require threshold signatures, which are a way to allow multiple parties to sign a transaction without revealing their private keys. This is a way to allow multiple parties to control a single vault without having to trust each other.
+
+Conversation around aggregate signatures, let alone threshold, weren't even happening yet. It wasn't until Jan 2018 that the first aggregate signature scheme (MuSig) was proposed by [Maxwell et al.](https://gnusha.org/pi/bitcoindev/CAAS2fgTXg5kk6TyUM9dS=tf5N0_Z-GKVmzMLwTW1HxUgrqdo+Q@mail.gmail.com/) and it wasn't until May 2019 that an official BIP for the requisite Bitcoin node upgrade was proposed by [Peter Wiulle on the Bitcoin-dev mailing list](https://gnusha.org/pi/bitcoindev/CAPg+sBg6Gg8b7hPogC==fehY3ZTHHpQReqym2fb4XXWFpMM-pQ@mail.gmail.com/). BIP 341, known as Taproot, promised to enable aggregate signatures on Bitcoin, which would allow for the creation of decentralized vaults.
+
+After proposal in 2019, it took two years for the Bitcoin community to reach consensus on the upgrade. Taproot locked in on [June 12, 2021, and was activated on November 14, 2021](https://bitcoinmagazine.com/technical/taproot-locks-in). This achievement came with promises of enabling sidechains to exist. Maxwell literally added an appendix to the [Back et al. Sidechains Paper (2014)](https://gnusha.org/pi/bitcoindev/CAAS2fgTXg5kk6TyUM9dS=tf5N0_Z-GKVmzMLwTW1HxUgrqdo+Q@mail.gmail.com/#:~:text=%20https%3A%2F%2Fblockstream.com%2Fsidechains.pdf%20appendix%20a) at the same as sending the taproot proposal to the Bitcoin-dev mailing list, which stated that taproot would enable sidechains, an idea conceived in 2014, to finally exist.
+
+## What is a sidechain?
+
+Any protocol for which you can send Bitcoin and receive a representation of that Bitcoin which can be later redeemed for the original Bitcoin is a sidechain.
+
+For example, you could send 1 BTC to [BitGo (real Palo Alto based company founded in 2013)](https://en.wikipedia.org/wiki/BitGo) and then receive 1 wBTC on Ethereum. You could then use that wBTC to trade on Uniswap or lend it out on Aave. Later, you could send the wBTC back to BitGo and receive the original 1 BTC back.
+
+This is a sidechain. The Bitcoin is sent to BitGo and then a representation of that Bitcoin is issued on Ethereum. The representation can be used on Ethereum and then later redeemed for the original Bitcoin. This is a great way to get Bitcoin onto other chains, but it is not decentralized. BitGo is a single point of failure. If BitGo goes down, suffers a hack, or physical security breach, then the entire sidechain goes down with it.
+
+Centralized exchanges are functionally sidechains. When you deposit your BTC into an exchange like Coinbase, you are sending your BTC to a vault controlled by the exchange. The exchange then issues you a representation of that BTC which you can use on their platform. This is a sidechain, but it is not decentralized. If the exchange goes down, then you lose your BTC.
+
+There is currently $13.46B worth of wBTC on Ethereum. BitGo has been around since 2013 and I'm sure that they have great security, but they are still a single point of failure. If BitGo goes down, then all of that WBTC is gone. The same is true for any other centralized exchange which issues a representation of Bitcoin on their platform.
+
+## If it's so insecure, why is it so popular?
+
+Bitcoin holders have very limited options for earning yield on their BTC. They can either hold it in a wallet and hope that the price goes up, or they can send it to a centralized exchange and hope that the exchange doesn't get hacked or go down. There are very few options for earning yield on Bitcoin without sending it to a centralized exchange.
+
+This is why WBTC is so popular. It allows Bitcoin holders to get their Bitcoin onto Ethereum and then use it to earn yield on DeFi protocols. It is a way to get Bitcoin onto Ethereum and use it in a decentralized way, but it is not decentralized itself.
+
+{/* TODO: Refactor this transition */}
+
+## Back to the timeline
+
+You may notice that, in the prior "better is possible" section of this blog, all of the taproot discussion and proposals focused on `n of n` aggregation schemes and threshold `m of n` schemes. It was a separate research group at University of Waterloo who did the work to develop a threshold signature scheme using Schnorr in [Komlo and Goldberg, FROST](https://eprint.iacr.org/2020/852).
+
+FROST was the first scheme to show that a threshold signature secured vault would be possible. However, in theory, it was not enough to run a threshold signature scheme securing a sidechain vault on Bitcoin because FROST requires a synchronous communication channel between the signers. This means that, when performed asynchronously over the internet, malicious signers could halt the protocol by refusing to sign. This is a blocker for using FROST in a sidechain vault since it means that funds could be locked up indefinitely if a malicious signer refused to sign.
+
+In 2022, [Ruffing et al. proposed ROAST](https://eprint.iacr.org/2022/550) which is a FROST wrapper which allows for asynchronous communication between the signers. This means that, even if a malicious signer refuses to sign, the protocol can still continue and the funds can be recovered. ROAST is a huge improvement over FROST and its publication and corresponding proof represents the beginning of decentralized threshold signature vaults for Bitcoin sidechains being actually possible.
+
+ROAST can be run in parallel with a proof of stake consensus mechanism to secure the vault. This means that, in addition to the cryptographic security provided by the threshold signature scheme, there is another layer of game theoretic security provided by the proof of stake consensus mechanism. This means that, assuming all of the signers are rational, they will not steal the funds in the vault because they would lose their stake in the protocol.
+
+## 3 years later, why has no one built this?
+
+I have been asking myself this question for the past 3 years. I have been waiting for someone to build a decentralized threshold signature vault on Bitcoin which uses FROST or ROAST to secure the vault. I have been waiting for someone to build a sidechain which allows you to send Bitcoin and receive a representation of that Bitcoin which can be later redeemed for the original Bitcoin. I have been waiting for someone to build a protocol which allows you to earn yield on your Bitcoin without sending it to a centralized exchange.
+
+I can only assume that the reason no one has built this is because it was too hard. The cryptography is hard, the engineering is hard, and the game theory is hard. It is a complex problem which requires a lot of expertise in multiple fields to solve.
+
+However, I believe that it is more possible than ever.
+
+## FROST/ROAST engineering progress
+
+After 2 years of development work, the [ZCash Foundation Announced the Conclusion of Development on their FROST Rust Crate](https://zfnd.org/the-state-of-frost-for-zcash/) which includes 2 separate audits, complete documentation. and usage examples. This lowers the barrier to entry for building a threshold signature vault on Bitcoin using FROST significantly. The ZCash Foundation has done a lot of the hard work for us and we can now build on top of their work.
+
+Further, there are ROAST implementation examples via the [Thetacrypt codebase (Sep 2024)](https://github.com/cryptobern/thetacrypt) and [Peercoin's Noosphere Server for ROAST Threshold Signatures (May 2025)](https://github.com/peercoin/noosphere_roast_server). Over the past 6 months things have really started to come together and I believe that we are on the cusp of being able to build a decentralized threshold signature vault on Bitcoin which uses FROST and ROAST running in parallel with a proof of stake consensus mechanism to secure the vault.
+
+## Why this is world changing
+
+Bitcoin, at time of writing, represents [61.76% of the entire crypto market cap](https://www.coingecko.com/en/global-charts). It is the largest and most secure blockchain in the world. If we can build a decentralized threshold signature vault on Bitcoin which uses FROST and ROAST, then we can create a sidechain which allows BTC holders to stake their BTC and earn yield by providing services like lending, trading, and payments. This would be a huge step forward for Bitcoin and would allow BTC holders to earn yield on their BTC without entrusting custody to a centralized party.
+
+Now is the time to build this. The cryptography is ready, the engineering is ready, and the game theory is ready. We just need someone to build it. Denzell and I are working on it, but we need more people to join us. If you are interested in building a decentralized threshold signature vault on Bitcoin using FROST and ROAST, then please reach out to us. We would love to work with you.
