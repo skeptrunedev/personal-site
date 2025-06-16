@@ -1,0 +1,74 @@
+---
+title: "Taking Dynamic Key Generation (FROST) From Papers to Production"
+slug: taking-dkg-from-papers-to-production
+summary: >-
+  "TODO"
+author: Nicholas Khami
+createdAt: 2025-06-16T18:52:00.000Z
+updatedAt: 2025-06-16T18:52:00.000Z
+coverImage: src/assets/images/blog-posts/HowToUseMidjourney/uzi-opengraph.png
+displayCoverImage: false
+isDraft: true
+isFeatured: false
+categories:
+  - threshold-security
+  - DKG
+  - FROST
+---
+
+## Introduction
+
+FROST (Flexible Round-Optimized Schnorr Threshold) is a protocol for distributed key generation (DKG) and threshold signatures. It allows a group of participants to jointly generate a public/private key pair, where the private key is split among the participants. This enables secure signing without requiring all participants to be online simultaneously.
+
+Algorithmically, it is a simple 2 round protocol. Many implementation libraries exist, but they aren't shaped like other kinds of software products that developers are used to deploying. They are often just libraries that require a lot of boilerplate code to get started with, and they don't provide a clear way to run the protocol in a production environment.
+
+We at Threshold Security have been working on a single binary Node which is designed to be a reusable piece of infrastructure for running FROST DKG in production. This Node is designed to be run by a group of participants who want to jointly generate a key pair and use it for signing. It provides simple command-line and RPC interfaces for starting the DKG process, managing participants, and generating keys.
+
+It's not completely ready for production yet, but we are making good progress. In this post, I will explain the background of FROST, how it works, and what our Node implementation currently supports.
+
+## FROST DKG Protocol Overview
+
+If you are interested in the details of FROST math, I recommend reading the paper [FROST: Flexible Round-Optimized Schnorr Threshold Signatures](https://eprint.iacr.org/2020/852.pdf) by Chelsea Komlo and Ian Goldberg. It provides a comprehensive overview of the protocol and its security properties.
+
+For our purposes, the math doesn't matter as much as the protocol structure, so I will only be providing explanations for the necessary pieces of the protocol to implement on top of the FROST libraries which already exist. The DKG process is divided into two rounds of communication followed by a simple sum of public keys to produce a final public key. The rounds are as follows:
+
+### Round 1: Private Key Commitment
+
+In the first round, each particpant generates a private key, compute commitments to it, and sends their commitments to all other participants. The commitments are based on the private key and a random nonce, which ensures that the commitments are unique and cannot be predicted by other participants.
+
+These messages do not contain any secret information, so they can be sent over an insecure channel. The commitments are used to prove that the participants have generated their private keys correctly and to ensure that they are commited to them for the duration of the DKG process.
+
+![visual representation of round 1](/src/assets/images/blog-posts/TakingDKGFromPapersToProduction/dkg-stage-1.png)
+
+### Round 2:
+
+### Round 3
+
+## Libraries & Implementations
+
+- [mikelodder7/frost-dkg](https://github.com/mikelodder7/frost-dkg)  
+  ⭐ 1 An implementation of the Frost Distributed Key Generation.
+
+- [cmdruid/frost](https://github.com/cmdruid/frost)  
+  ⭐ 13 — Flexible, round-optimized threshold signature library for BIP340 taproot.
+
+- [bytemare/frost](https://github.com/bytemare/frost)  
+  ⭐ 20 — Go implementation of RFC9591: the FROST (Flexible Round-Optimized Schnorr Threshold) signing protocol.
+
+- [taurushq-io/frost-ed25519](https://github.com/taurushq-io/frost-ed25519)  
+  ⭐ 68 — Implementation of the FROST protocol for threshold Ed25519 signing.
+
+- [topos-protocol/ice-frost](https://github.com/topos-protocol/ice-frost)  
+  ⭐ 18 — A modular Rust implementation of the static version of the ICE-FROST signature scheme.
+
+- [zellular-xyz/pyfrost](https://github.com/zelular-xyz/pyfrost)  
+  ⭐ 2 — Python implementation of the FROST algorithm.
+
+- [LFDT-Lockness/givre](https://github.com/LFDT-Lockness/givre)  
+  ⭐ 9 — Threshold Schnorr Signatures based on FROST in Rust.
+
+- [ZcashFoundation/frost](https://github.com/ZcashFoundation/frost)  
+  ⭐ 190 — Rust implementation of FROST (Flexible Round-Optimised Schnorr Threshold signatures) by the Zcash Foundation.
+
+- [BlockstreamResearch/bip-frost-dkg](https://github.com/BlockstreamResearch/bip-frost-dkg)  
+  ⭐ 59 — Bitcoin Improvement Proposal proposes ChillDKG, a distributed key generation protocol (DKG) for use with the FROST Schnorr threshold signature scheme.
