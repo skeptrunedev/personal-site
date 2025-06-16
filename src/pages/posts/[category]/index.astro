@@ -20,14 +20,17 @@ export async function getStaticPaths() {
     {} as Record<string, number>
   );
 
-  return categories.map(({ id, data: category }) => ({
-    params: { category: id },
-    props: {
-      category,
-      catFreqs,
-      entries: allPosts.filter((p) => p.data.categories.includes(id)),
-    },
-  }));
+  return categories.map(({ id, data: category }) => {
+    console.log(`Generating path for category: ${category.name} (${id})`);
+    return {
+      params: { category: category.name },
+      props: {
+        category,
+        catFreqs,
+        entries: allPosts.filter((p) => p.data.categories.includes(id)),
+      },
+    };
+  });
 }
 
 const { entries, category, catFreqs } = Astro.props;
