@@ -1,0 +1,55 @@
+---
+title: "Building the Server for Threshold Multisigs"
+slug: building-the-server-for-threshold-multisigs
+summary: >-
+  "TODO"
+author: Nicholas Khami
+createdAt: 2025-06-16T18:52:00.000Z
+updatedAt: 2025-06-16T18:52:00.000Z
+coverImage: src/assets/images/blog-posts/HowToUseMidjourney/uzi-opengraph.png
+displayCoverImage: false
+isDraft: true
+isFeatured: false
+categories:
+  - threshold-security
+  - DKG
+  - FROST
+---
+
+## Introduction
+
+Bitwise and Coinbase Custody went through a hullaballo in 2024 when Bitwise published the Bitcoin addresses holding the funds backing their Bitcoin ETF. They [were accused of not using multisig wallets](https://news.bit2me.com/en/bitwise-no-usa-multisig-para-almacenar-reserva-etf-de-bitcoin) which are considered best practice for securing large amounts of Bitcoin.
+
+It's unlikely that this is true as pointed out by the [creator of DefiLlama](https://x.com/0xngmi/status/1750645668534738982). Coming from working in the search world for the past two years, it reminds of all the times semantic search vendors would claim Google didn't use embeddings.
+
+However, I do understand where the accusations came from. Bitwise's addresses are ECDSA and not Schnorr. This is a big deal because, as noted by many researchers, the ECDSA curve is significantly harder to compute multiple party signatures for than Schnorr. ECDSA is non-linear, while Schnorr is linear, making it much easier to implement threshold multisigs with Schnorr signatures.
+
+Yet, the cool thing about Coinbase, is that they have implemented threshold signature scheme libraries for ECDSA and actually [published them as open source on Github under a MIT license](https://github.com/coinbase/cb-mpc/blob/master/docs/theory/ecdsa-mpc-theory.pdf). It's not the most actively maintained library and it's weird that it's C++ and not Rust given Rust's safety advantages for a use-case like this, but it does exist and is usable. So, kudos to them for that.
+
+Still, ideally Bitwise would be able to custody their own funds without relying on Coinbase, and they would be able to do so using a threshold multisig scheme that is easy to deploy and use. This is where we come in.
+
+## Libraries vs Servers
+
+Again, I've been in search for the past two years, and one of the things there is that the major engines are primarily based on the lucene library. Lucene is a powerful library for building search engines, but it's not a complete solution. It's like having a powerful engine, but no car to put it in. You can build your own car, but it's a lot of work and you have to figure out how to make it safe and reliable. Solutions like Elasticsearch, OpensSearch, and Solr are built on top of Lucene, but they are not just libraries. They are complete solutions that provide a way to run a search engine in production.
+
+Coinbase, the Zcash foundation, Serai, and others have all published libraries for implementing threshold multisigs, but they are not complete server implementations which can be consumed by application developers. They are like the Lucene library, powerful but not a complete solution. You can build your own server on top of them, but it's a lot of work and you have to figure out how to make it safe and reliable.
+
+We at Threshold Security are making a single binary Node which is designed to be a reusable piece of infrastructure for running threshold multisigs in production. This Node is designed to be run by a group of participants who want to jointly generate a key pair and use it for signing. It provides simple command-line and RPC interfaces for starting the DKG process, managing participants, and generating keys.
+
+You should be able to deploy a threshold multi signature vault with the same level of ease that you do postgresql.
+
+## Wtf is a threshold multi signature vault?
+
+A multi-signature vault (or wallet) is a type of digital wallet that requires multiple private keys to authorize a transaction. Instead of a single person having full control, several parties must agree before funds can be moved. For example, a 3-of-3 multisig wallet means all three parties involved in securing the vault have to approve for funds to be moved out.
+
+A threshold multi-signature wallet is a specific kind of multisig wallet where only a subset (the "threshold") of the total key holders need to sign. For example, in a 3-of-5 threshold wallet, any three out of five participants can approve a transaction. This is often written as "t-of-n", where "t" is the threshold and "n" is the total number of signers. For example, you could have a 2-of-3 threshold multisig, where only two of the three parties have to approve for funds to leave the vault.
+
+Threshold schemes are preferable to n-of-n setups because, in a n-of-n setup, all of the assets in the vault can become inaccessible if a single one of the securing parties goes offline or loses access to their private key.
+
+## Threshold Security's Node v0.0.0
+
+Today we are also releasing the first version of our Node! It's extremely early, but still a complete implementation of dynamic key generation (DKG) and threshold signing with FROST. We picked FROST because, based on the generous work of the Zcash Foundation, there is a finished and audited open source [library implementation for it in Rust](https://github.com/ZcashFoundation/frost).
+
+## Pre-startup
+
+The set of parties who will be participating in a given threshold multisig vault must agree on who each other are before starting the DKG process to the extent that they share libp2p public keys with each other. This is done to avoid the risk of a malicious party 
