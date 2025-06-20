@@ -18,38 +18,76 @@ categories:
 
 ## Introduction
 
-Bitwise and Coinbase Custody went through a hullaballo in 2024 when Bitwise published the Bitcoin addresses holding the funds backing their Bitcoin ETF. They [were accused of not using multisig wallets](https://news.bit2me.com/en/bitwise-no-usa-multisig-para-almacenar-reserva-etf-de-bitcoin) which are considered best practice for securing large amounts of Bitcoin.
+You're launching a new Bitcoin ETF worth billions of dollars. You need to secure the funds backing it and are scared to build that security system yourself, so you look for a vendor. You pick Coinbase Custody, probably the most well-known and trusted company in the entire ecosystem, to custody your funds. Trying to be transparent, you publish the Bitcoin addresses holding the funds backing your ETF.
 
-It's unlikely that this is true as pointed out by the [creator of DefiLlama](https://x.com/0xngmi/status/1750645668534738982). Coming from working in the search world for the past two years, it reminds of all the times semantic search vendors would claim Google didn't use embeddings.
+Then, the whole world realizes that Coinbase has the entire amount secured behind a single private key, and that private key may or may not be an offline threshold multisig wallet.
 
-However, I do understand where the accusations came from. Bitwise's addresses are ECDSA and not Schnorr. This is a big deal because, as noted by many researchers, the ECDSA curve is significantly harder to compute multiple party signatures for than Schnorr. ECDSA is non-linear, while Schnorr is linear, making it much easier to implement threshold multisigs with Schnorr signatures.
+This is the story of Bitwise, Coinbase Custody, and the accusations that they were not using multisig wallets to secure their Bitcoin ETF funds.
 
-Yet, the cool thing about Coinbase, is that they have implemented threshold signature scheme libraries for ECDSA and actually [published them as open source on Github under a MIT license](https://github.com/coinbase/cb-mpc/blob/master/docs/theory/ecdsa-mpc-theory.pdf). It's not the most actively maintained library and it's weird that it's C++ and not Rust given Rust's safety advantages for a use-case like this, but it does exist and is usable. So, kudos to them for that.
+Ultimately, the accusations were likely unfounded, Coinbase Custody most likely uses a threshold ECDSA scheme which, while much scarier to implement and maintain than Schnorr, still provides a high level of security. However, the situation is still bizarre and highlights the need for better tools and infrastructure for implementing threshold multisigs in production.
 
-Still, ideally Bitwise would be able to custody their own funds without relying on Coinbase, and they would be able to do so using a threshold multisig scheme that is easy to deploy and use. This is where we come in.
+## State of the Ecosystem
 
-## Libraries vs Servers
+I started working on a Bitcoin bridge at ZeroDAO in 2022 and quickly realized that the state of the ecosystem was nascent. There are many libraries for implementing threshold multisigs, but that's the easy part. The hard part is building a complete server implementation that can be run in production.
 
-Again, I've been in search for the past two years, and one of the things there is that the major engines are primarily based on the lucene library. Lucene is a powerful library for building search engines, but it's not a complete solution. It's like having a powerful engine, but no car to put it in. You can build your own car, but it's a lot of work and you have to figure out how to make it safe and reliable. Solutions like Elasticsearch, OpensSearch, and Solr are built on top of Lucene, but they are not just libraries. They are complete solutions that provide a way to run a search engine in production.
+If you want to run a threshold multisig vault, you have to build your own server on top of these libraries. This is a lot of work and requires a deep understanding of the underlying cryptography and protocols. It's like having a powerful engine, but no car to put it in. You can build your own car, but it's a lot of work and you have to figure out how to make it safe and reliable.
 
-Coinbase, the Zcash foundation, Serai, and others have all published libraries for implementing threshold multisigs, but they are not complete server implementations which can be consumed by application developers. They are like the Lucene library, powerful but not a complete solution. You can build your own server on top of them, but it's a lot of work and you have to figure out how to make it safe and reliable.
+Bitwise is basically forced to rely on Coinbase Custody or some other vendor to manage their $4B of Bitcoin for them based on a trust model that is not transparent to the public and maybe not even transparent to them. This is not a good situation for the ecosystem, and it's not a good situation for the users of these services.
 
-We at Threshold Security are making a single binary Node which is designed to be a reusable piece of infrastructure for running threshold multisigs in production. This Node is designed to be run by a group of participants who want to jointly generate a key pair and use it for signing. It provides simple command-line and RPC interfaces for starting the DKG process, managing participants, and generating keys.
+## Deciding to Do Something About It
 
-You should be able to deploy a threshold multi signature vault with the same level of ease that you do postgresql.
+Startups are fu\*\*ing hard. Out of college, I have spent the past two years working 70+ hour weeks, making less than a third of what I would at a reputable tech company, trying to make something of myself and simultaneously put a dent in the world.
 
-## Wtf is a threshold multi signature vault?
+Our first product, [Trieve](https://trieve.ai), is a relevancy optimized search engine in a simple API. We built it because we were frustrated with the state of having to go through the hassle of setting up an ingestion pipeline, indexing data, and optimizing the underlying engine every time you wanted high quality retrieval. I'm very proud of it!
 
-A multi-signature vault (or wallet) is a type of digital wallet that requires multiple private keys to authorize a transaction. Instead of a single person having full control, several parties must agree before funds can be moved. For example, a 3-of-3 multisig wallet means all three parties involved in securing the vault have to approve for funds to be moved out.
+Lifetime, we have supported over 300 unique paying customers, made hundreds of thousands of dollars in revenue, served 150M+ searches, and indexed over 1B documents. At this point, it's a mature product and we have fulfilled our initial ambitions for it. There's even a [shopify app](https://apps.shopify.com/trieve) that over 100 stores are using!
 
-A threshold multi-signature wallet is a specific kind of multisig wallet where only a subset (the "threshold") of the total key holders need to sign. For example, in a 3-of-5 threshold wallet, any three out of five participants can approve a transaction. This is often written as "t-of-n", where "t" is the threshold and "n" is the total number of signers. For example, you could have a 2-of-3 threshold multisig, where only two of the three parties have to approve for funds to leave the vault.
+But I still felt like there was something missing. I wanted to build something that would have a lasting impact and Trieve started to feel like a distraction from that. I stopped getting sparks of joy every time we onboarded a new customer or launched a new feature. AI is great, but overtime I started to feel more like a glorified data janitor than a builder.
 
-Threshold schemes are preferable to n-of-n setups because, in a n-of-n setup, all of the assets in the vault can become inaccessible if a single one of the securing parties goes offline or loses access to their private key.
+## To Quit or Not to Quit
 
-## Threshold Security's Node v0.0.0
+Trieve isn't big enough to sell for a life-changing amount of money. Denzell and I talked through some acquihire offers, but they didn't feel right. Denzell and I learned a ton from building Trieve, and we are both very proud of what we accomplished. Our tank of energy was still pretty full, the valve between it and Trieve's product was just closed.
 
-Today we are also releasing the first version of our Node! It's extremely early, but still a complete implementation of dynamic key generation (DKG) and threshold signing with FROST. We picked FROST because, based on the generous work of the Zcash Foundation, there is a finished and audited open source [library implementation for it in Rust](https://github.com/ZcashFoundation/frost).
+So, we started looking around and trying to figure out something that the valve could be opened to. In that process, we got drawn back to the startups we had worked at before Trieve, and the problems we had seen there.
 
-## Pre-startup
+## Working at a Startup
 
-The set of parties who will be participating in a given threshold multisig vault must agree on who each other are before starting the DKG process to the extent that they share libp2p public keys with each other. This is done to avoid the risk of a malicious party 
+When you decide to join a startup, you typically are not doing it for the money. It's a raw deal to be an early employee at a startup. You are taking on a lot of risk, working long hours, and making less money than you would at a big tech company. But you do it because you believe in the mission and you want to be part of something bigger than yourself.
+
+I was extremely lucky to have the experience of being bought into two startups doing something I believed strongly in before founding my own. I worked at [ZeroDAO](https://x.com/zerodaoHQ), [Quai](https://x.com/QuaiNetwork), [Breezy](https://getbreezyapp.com/), and [Botanix](https://x.com/BotanixLabs). Three out of those four startups were in the permissionless blockchain space, and that's no coincidence. I'm easily nerd sniped by the idea of building something that is open source, permissionless, and can be used by anyone who wants to use it.
+
+Ironically, ZeroDAO and Botanix in particular were both working specifically on applications which required managing a vault of Bitcoin assets. ZeroDAO, in typical startup fashion, used infrastructure from a vendor, speficially a company called [renvm](https://github.com/renproject), to manage the Bitcoin assets backing their bridge. RenVM was owned by Alameda Research who collapsed in late 2022 along with FTX, and the RenVM team was forced to shut down the service. That was the end of ZeroDAO which was a damn shame because, prior to that, we had built a really cool product that processed over [184BTC in less than 7 months](https://dune.com/queries/5246861/8621995?sidebar=none).
+
+As it turns out, similar to Bitwise, it was also out of scope for ZeroDAO to build their own threshold multisig vault server. Ultimately, the company was forced to shut down because we could not find a vendor to replace RenVM. Unlike Bitwise, we were in no way big enough to force a repuatable company, Coinbase Custody, BitGo, Anchorage, or others, to implement the features we needed.
+
+Coming out of that experience, I decided to join Botanix to right that wrong. Botanix is building a Bitcoin sidechain which requires a bitcoin vault the same way a bridge does. Ultimately, Trieve started to get traction while I was there and I left to focus on it. At the time trusting that the work would go on at Botanix and the world would get a threshold multisig vault server implementation with or without me working on it.
+
+But, two years later, I'm still waiting fot that to happen.
+
+## Doing the Damn Thing
+
+It's a better time to bite this bullet on building this than ever before. The Zcash Foundation has announced that they are doing working on their threshold signature ([FROST](https://eprint.iacr.org/2020/852.pdf) if you care about the details) library and have a well-documented and audited implementation in Rust. Lucky for Denzell and I, we are now proficient Rust developers after building Trieve, so we can build on top of that library.
+
+[Serai](https://x.com/seraidex?lang=en) also has a fantastic complete [reference server implementation in Rust](https://github.com/serai-dex/serai/blob/48db06f901952b24bb38d7c7e256f798f08512cd/spec/coordinator/Coordinator.md).
+
+Building blocks are much more mature than they were two years ago, and it feels like the right time to build on top of them. Also, it doesn't seem like anyone else is really working on it, so perhaps we can reap first mover advantage in a way that we couldn't with Trieve.
+
+Coming from the search engine space for the past 2 years, I like to think we are in a similar spot relative to where Shay Bannon was in 2005 when he started building [compass](https://github.com/kimchy/compass), a server abstraction layer on top of a search engine library called Lucene. Compass was a complete server implementation that made it easy to run a search engine in production, and it was the precursor to Elasticsearch, which is now the most popular search engine in the world.
+
+Completlely different industry, but I think the analogy holds.
+
+## Who's This Going to be For?
+
+I love startups more than anything, but we want to make this work for larger custodians and exchanges first. Ideally, we build a standard piece of infrastrcuture that's used by all of the largest custodians and exchanges in the Bitcoin ecosystem. We want to make it easy for them to run a threshold multisig vault, so they can focus on building their products and services instead of worrying about the underlying security infrastructure.
+
+Also, we want to help large institutions be their own custodians. Part of Blockchain's promise is that it's trustless, and we want to help large institutions take advantage of that. We want to help them run their own threshold multisig vaults, so they can be their own custodians and not have to rely on third-party vendors.
+
+However, that doesn't mean we are going to ignore the startup and individual developer use cases. People have big blockchain application dreams, from decentralized exchanges to marketplaces to lending protocols, which all require vaults to manage the assets backing them. While it's not our primary focus, I still do want to make sure we build something which would have solved the problems we faced at ZeroDAO back when RenVM shut down.
+
+It's just an open source server! Anyone is going to be able to run it.
+
+## What's Happening With Trieve?
+
+We are not going to be shutting down Trieve! It's a mature product which keeps us profitable and default alive. We are going to keep marketing it and supporting our customers.
+
+The only difference is that we are cutting back on the ambition of our roadmap. We are going to continue fixing bugs, adding features that our customers request, and making sure the product is stable and reliable. But we are not going to be adding any new major features or trying to expand into new markets.
