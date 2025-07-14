@@ -23,9 +23,25 @@ export default defineConfig({
     resolve: {
       alias: {
         "@": "/src",
+        "buffer": "buffer",
       },
     },
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: ["buffer"],
+    },
+    define: {
+      global: 'globalThis',
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          globals: {
+            buffer: "Buffer",
+          },
+        },
+      },
+    },
   },
   redirects: {
     "/posts/git-worktrees-with-AI/": "/posts/git-worktrees-agents-and-tmux/",

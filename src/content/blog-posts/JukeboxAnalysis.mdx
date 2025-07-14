@@ -1,0 +1,92 @@
+---
+title: "What 7,112 Hacker News users listened to on my side project"
+slug: jukebox-hacker-news
+summary: >-
+  I built an open source collaborative playlist app for fun called Jukebox. After launching it on Hacker News and different subreddits, it accumulated 7112 visitors who played 2685 songs. In this post, I do a bit of data analysis on their usage patterns and what their music tastes were. Spoiler, they have surprisingly mainstream tastes.
+author: Nicholas Khami
+createdAt: 2025-07-14T18:52:00.000Z
+updatedAt: 2025-07-14T18:52:00.000Z
+coverImage: src/assets/images/blog-posts/JukeboxAnalysis/preview-image.jpg
+displayCoverImage: false
+isDraft: false
+isFeatured: true
+displaySummary: false
+categories:
+  - jukebox
+  - learning
+  - data-analysis
+---
+
+import UserEngagementSankey from "../../components/blog/JukeboxAnalysis/UserEngagementSankey.astro";
+import SongsExplorer from "../../components/blog/JukeboxAnalysis/SongsExplorer.astro";
+import ArtistAnalysis from "../../components/blog/JukeboxAnalysis/ArtistAnalysis.astro";
+
+I was burnt out from my startup and wanted to recover some of my creative energy, so I decided to build a fun side project called [Jukebox](https://github.com/skeptrunedev/jukebox).
+
+I had the idea of building a collaborative playlist app where you could queue music together with friends and family.
+
+I launched it on Hacker News, where it [hit frontpage](https://hnrankings.info/44500840/) and got a lot of traction. In total, it had **7112 visitors** who played **2877 songs**.
+
+Hacker News users are known for their eclectic tastes, so I was curious to see what kind of music they listened to. I did some data analysis on the usage patterns and music genres, and I wanted to share my findings.
+
+## People Actually Used It!
+
+Part of the fun of side projects is that you can use them as an opportunity to build your skills. Personally, one of the core skills I want to improve is marketing.
+
+Therefore, it was important to me that I actually drove traffic to the app and got people to use it. I'm happy to report that I was able to do that! Here's a full breakdown of the user engagement:
+
+<UserEngagementSankey />
+
+The data is reliable because each visitor to the site is assigned an anonymous user account. This allows for accurate tracking of how many unique users visited, how many created a "box" (playlist), and how many engaged with the main features.
+
+Conversion rate into the primary "Create Box" CTA was awesome! However, I was sorely dissapointed to see that only 6.7% of people who created a box actually used the app to queue music together, which was the main reason why I built the app in the first place.
+
+I'd call it a pyhrrhic victory. My product sense was a few rings off the bullseye, but still on the target. I'm not going to continue working on Jukebox, but it certainly fulfilled its core purpose of helping me recover my creative energy and learn some new skills.
+
+## What Music Did They Listen To?
+
+### Genres
+
+Spotify is generous with their API, so I was able to hydrate the songs data with genres by using their data.
+
+Hacker News users actually disappointed me with their music tastes. I expected them to be more eclectic, but classic rock and rock were 2 times more popular than any other genre.
+
+New wave, metal, and rap followed as the next most played genres, but there was a steep drop-off after the top three. The long tail of genres included everything from country and EDM to post-hardcore and progressive rock, but these were much less represented.
+
+One thing that surprised me was how country music edged out electronic genres in popularity. I expected a tech-focused audience to gravitate more towards electronic or EDM, but country had a stronger showing among the top genres. It’s a reminder that musical preferences can defy stereotypes, even in communities you’d expect to lean a certain way.
+
+<SongsExplorer />
+
+### Artists
+
+When it comes to artists, the results were a mix of the expected and the surprising. Michael Jackson topped the list as the most played artist—proving that the King of Pop’s appeal truly spans generations and communities, even among techies. Queen and Key Glock followed closely, showing that both classic rock and modern hip-hop have their place in the hearts (and playlists) of Hacker News users.
+
+I was surprised to see a strong showing from artists like Taylor Swift and Depeche Mode, as well as a healthy mix of rap, electronic, and indie acts. The diversity drops off after the top few, but there’s still a wide spread: from Daft Punk to Nirvana, Dua Lipa to ABBA, and even some more niche names like Wolf Parade and Day Wave.
+
+Overall, while classic rock and pop dominate, there’s a clear undercurrent of variety—perhaps reflecting the broad interests of the Hacker News crowd, even if their musical tastes lean a bit more mainstream than I expected.
+
+<ArtistAnalysis />
+
+## AI Makes Me More Willing to Build Things
+
+Dens Sumesh, a former intern at my company, originally had the idea for Jukebox and told me about it at dinner one day. I thought it was a great and had potential, so I decided to build it. AI codegen has made me drastically more willing to build things on a whim.
+
+Typically I would have probably quit after finishing the backend, because React slop is not my favorite thing to work on. However, since the AI is good enough at React to do most of that work for me, I was mentally able to push through and finish the project.
+
+Another side benefit of building this was that I got a better handle on when AI is an efficient tool versus when it’s better to rely on my own skills. For example, highlighting a component and prompting `"use framer-motion to make this fade in buttery smooth"` is a great use of AI.
+
+However, more complex asks like `"add an api route to accept a song, put it in a queue with sqlite, and create a worker that downloads and uploads them to s3, with a final api route to check when they finish"` are more efficiently handled by a human with intuition and experience.
+
+Framing things out manually, or even prompting the frame, consistently seemed to be a more efficient strategy than trying to get the AI to one-shot entire features. Both approaches can work, but breaking things down helps you maintain control and clarity over the process.
+
+If you rely too much on one-shot prompts, you can end up in a cycle where your eyes glaze over and you're pressing the "regenerate" button like it's a Vegas slot machine. This slot machining makes launching less likely because you spend more time hoping for a perfect result rather than iterating and moving forward. It's easy to get stuck chasing the ideal output instead of shipping something real and learning from feedback.
+
+## Conclusion
+
+Build stuff, share it, get feedback, and learn. Shots on goal lead to more opportunities for improvement and innovation.
+
+Even though Jukebox is now going into maintenance mode, it was everything I hoped it would be: a fun side project that people actually used.
+
+If you want the raw data, you can find it on the [GitHub repository](https://github.com/skeptrune/personal-site/tree/main/src/assets/data/blog-posts/JukeboxAnalysis/dev.sqlite3).
+
+If you want to see the source code for Jukebox, that's on [Github at skeptrunedev/jukebox](https://github.com/skeptrunedev/jukebox).

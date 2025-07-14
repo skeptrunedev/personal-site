@@ -1,0 +1,129 @@
+---
+
+---
+
+<div id="songs-explorer" style="width: 100%; height: 600px;"></div>
+
+<style>
+  #songs-explorer {
+    margin: 20px 0;
+  }
+</style>
+
+<script>
+  // Ensure global is defined for Plotly.js
+  if (typeof global === "undefined") {
+    window.global = window;
+  }
+
+  // Import and setup Buffer polyfill
+  import { Buffer } from "buffer";
+  if (typeof window !== "undefined") {
+    window.Buffer = Buffer;
+  }
+
+  // @ts-ignore
+  import Plotly from "plotly.js-dist";
+
+  // Engagement data
+  import SongsHydrated from "../../../assets/data/blog-posts/JukeboxAnalysis/songs_hydrated.json";
+
+  // Process genre data
+  function processGenreData(songs: any[]) {
+    const genreCount: Record<string, number> = {};
+
+    songs.forEach((song: any) => {
+      if (song.genre) {
+        let genres = [];
+
+        // Handle different genre formats
+        if (typeof song.genre === "string") {
+          // Check if it's a JSON array string
+          if (song.genre.startsWith("[") && song.genre.endsWith("]")) {
+            try {
+              // Parse the JSON array string and clean up the genres
+              genres = JSON.parse(song.genre.replace(/'/g, '"'));
+            } catch (e) {
+              // If parsing fails, treat as single genre
+              genres = [song.genre];
+            }
+          } else {
+            // Single genre string
+            genres = [song.genre];
+          }
+        } else if (Array.isArray(song.genre)) {
+          genres = song.genre;
+        }
+
+        // Count each genre
+        genres.forEach((genre: string) => {
+          const cleanGenre = genre.trim().toLowerCase();
+          if (
+            cleanGenre &&
+            cleanGenre !== "null" &&
+            cleanGenre !== "undefined"
+          ) {
+            genreCount[cleanGenre] = (genreCount[cleanGenre] || 0) + 1;
+          }
+        });
+      }
+    });
+
+    // Convert to array and sort by count (popularity)
+    const genreArray = Object.entries(genreCount)
+      .map(([genre, count]) => ({ genre, count }))
+      .sort((a, b) => b.count - a.count);
+
+    return genreArray;
+  }
+
+  // Create the bar chart
+  function createGenreChart() {
+    let genreData = processGenreData(SongsHydrated);
+    genreData = genreData.slice(0, 50); // Limit to top 20 genres
+
+    const trace = {
+      x: genreData.map((item) => item.genre),
+      y: genreData.map((item) => item.count),
+      type: "bar",
+      marker: {
+        color: "rgba(55, 128, 191, 0.7)",
+        line: {
+          color: "rgba(55, 128, 191, 1.0)",
+          width: 1,
+        },
+      },
+      hovertemplate: "<b>%{x}</b><br>Songs: %{y}<extra></extra>",
+    };
+
+    const layout = {
+      title: {
+        text: "",
+        font: { size: 20, family: "Arial" },
+      },
+      font: { size: 12, family: "Arial" },
+      xaxis: {
+        title: "Genre",
+        tickangle: -90,
+        automargin: true,
+      },
+      yaxis: {
+        title: "Number of Songs",
+      },
+      height: 600,
+      margin: { l: 40, r: 40, t: 60, b: 40 },
+      plot_bgcolor: "white",
+    };
+
+    const config = {
+      responsive: true,
+      displayModeBar: false,
+    };
+
+    Plotly.newPlot("songs-explorer", [trace], layout, config);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => createGenreChart());
+  document.addEventListener("astro:after-swap", () => createGenreChart());
+  document.addEventListener("astro:page-load", () => createGenreChart());
+</script>

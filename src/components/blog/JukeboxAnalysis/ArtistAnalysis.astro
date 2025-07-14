@@ -1,0 +1,129 @@
+---
+
+---
+
+<div id="artist-explorer" style="width: 100%; height: 600px;"></div>
+
+<style>
+  #artist-explorer {
+    margin: 20px 0;
+  }
+</style>
+
+<script>
+  // Ensure global is defined for Plotly.js
+  if (typeof global === "undefined") {
+    window.global = window;
+  }
+
+  // Import and setup Buffer polyfill
+  import { Buffer } from "buffer";
+  if (typeof window !== "undefined") {
+    window.Buffer = Buffer;
+  }
+
+  // @ts-ignore
+  import Plotly from "plotly.js-dist";
+
+  // Engagement data
+  import SongsHydrated from "../../../assets/data/blog-posts/JukeboxAnalysis/songs_hydrated.json";
+
+  // Process artist data
+  function processArtistData(songs: any[]) {
+    const artistCount: Record<string, number> = {};
+
+    songs.forEach((song: any) => {
+      if (song.artist) {
+        let artists = [];
+
+        // Handle different artist formats
+        if (typeof song.artist === "string") {
+          // Check if it's a JSON array string
+          if (song.artist.startsWith("[") && song.artist.endsWith("]")) {
+            try {
+              // Parse the JSON array string and clean up the artists
+              artists = JSON.parse(song.artist.replace(/'/g, '"'));
+            } catch (e) {
+              // If parsing fails, treat as single artist
+              artists = [song.artist];
+            }
+          } else {
+            // Single artist string
+            artists = [song.artist];
+          }
+        } else if (Array.isArray(song.artist)) {
+          artists = song.artist;
+        }
+
+        // Count each artist
+        artists.forEach((artist: string) => {
+          const cleanArtist = artist.trim();
+          if (
+            cleanArtist &&
+            cleanArtist !== "null" &&
+            cleanArtist !== "undefined"
+          ) {
+            artistCount[cleanArtist] = (artistCount[cleanArtist] || 0) + 1;
+          }
+        });
+      }
+    });
+
+    // Convert to array and sort by count (popularity)
+    const artistArray = Object.entries(artistCount)
+      .map(([artist, count]) => ({ artist, count }))
+      .sort((a, b) => b.count - a.count);
+
+    return artistArray;
+  }
+
+  // Create the bar chart
+  function createArtistChart() {
+    let artistData = processArtistData(SongsHydrated);
+    artistData = artistData.slice(0, 30); // Limit to top 30 artists
+
+    const trace = {
+      x: artistData.map((item) => item.artist),
+      y: artistData.map((item) => item.count),
+      type: "bar",
+      marker: {
+        color: "rgba(191, 128, 55, 0.7)",
+        line: {
+          color: "rgba(191, 128, 55, 1.0)",
+          width: 1,
+        },
+      },
+      hovertemplate: "<b>%{x}</b><br>Songs: %{y}<extra></extra>",
+    };
+
+    const layout = {
+      title: {
+        text: "",
+        font: { size: 20, family: "Arial" },
+      },
+      font: { size: 12, family: "Arial" },
+      xaxis: {
+        title: "Artist",
+        tickangle: -90,
+        automargin: true,
+      },
+      yaxis: {
+        title: "Number of Songs",
+      },
+      height: 600,
+      margin: { l: 40, r: 40, t: 60, b: 120 },
+      plot_bgcolor: "white",
+    };
+
+    const config = {
+      responsive: true,
+      displayModeBar: false,
+    };
+
+    Plotly.newPlot("artist-explorer", [trace], layout, config);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => createArtistChart());
+  document.addEventListener("astro:after-swap", () => createArtistChart());
+  document.addEventListener("astro:page-load", () => createArtistChart());
+</script>

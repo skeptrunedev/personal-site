@@ -1,0 +1,173 @@
+---
+
+---
+
+<div id="sankey-chart" style="width: 100%; height: 600px;"></div>
+
+<style>
+  #sankey-chart {
+    margin: 20px 0;
+  }
+</style>
+
+<script>
+  // Ensure global is defined for Plotly.js
+  if (typeof global === "undefined") {
+    window.global = window;
+  }
+
+  // Import and setup Buffer polyfill
+  import { Buffer } from "buffer";
+  if (typeof window !== "undefined") {
+    window.Buffer = Buffer;
+  }
+
+  // @ts-ignore
+  import Plotly from "plotly.js-dist";
+
+  // Engagement data
+  const totalUsers = 7112;
+  const usersWhoMadeABox = 1722;
+  const usersWhoAddedASong = 1040;
+  const usersWhoCollaborated = 116;
+
+  // Node labels with percentages
+  const nodeLabels = [
+    `Total Users<br>${totalUsers.toLocaleString()}`,
+    `Created Box<br>${usersWhoMadeABox.toLocaleString()} (${((usersWhoMadeABox / totalUsers) * 100).toFixed(1)}%)`,
+    `Did Not Create Box<br>${(totalUsers - usersWhoMadeABox).toLocaleString()} (${(((totalUsers - usersWhoMadeABox) / totalUsers) * 100).toFixed(1)}%)`,
+    `Added Song<br>${usersWhoAddedASong.toLocaleString()} (${((usersWhoAddedASong / usersWhoMadeABox) * 100).toFixed(1)}% of box creators)`,
+    `Did Not Add Song<br>${(usersWhoMadeABox - usersWhoAddedASong).toLocaleString()} (${(((usersWhoMadeABox - usersWhoAddedASong) / usersWhoMadeABox) * 100).toFixed(1)}% of box creators)`,
+    `Collaborated<br>${usersWhoCollaborated.toLocaleString()} (${((usersWhoCollaborated / usersWhoAddedASong) * 100).toFixed(1)}% of song adders)`,
+    `Did Not Collaborate<br>${(usersWhoAddedASong - usersWhoCollaborated).toLocaleString()} (${(((usersWhoAddedASong - usersWhoCollaborated) / usersWhoAddedASong) * 100).toFixed(1)}% of song adders)`,
+  ];
+
+  // Node colors
+  const nodeColors = [
+    "#636EFA",
+    "#00CC96",
+    "#EF553B",
+    "#AB63FA",
+    "#FFA15A",
+    "#19D3F3",
+    "#FF6692",
+  ];
+
+  // Links with custom hover templates
+  const links = [
+    // Total Users -> Created Box / Did Not Create Box
+    {
+      source: 0,
+      target: 1,
+      value: usersWhoMadeABox,
+      color: "rgba(0,204,150,0.5)",
+      hovertemplate:
+        `<b>Users who created a box</b><br>` +
+        `Count: ${usersWhoMadeABox.toLocaleString()}<br>` +
+        `Percentage: ${((usersWhoMadeABox / totalUsers) * 100).toFixed(1)}% of all users<extra></extra>`,
+    },
+    {
+      source: 0,
+      target: 2,
+      value: totalUsers - usersWhoMadeABox,
+      color: "rgba(239,85,59,0.5)",
+      hovertemplate:
+        `<b>Users who did not create a box</b><br>` +
+        `Count: ${(totalUsers - usersWhoMadeABox).toLocaleString()}<br>` +
+        `Percentage: ${(((totalUsers - usersWhoMadeABox) / totalUsers) * 100).toFixed(1)}% of all users<extra></extra>`,
+    },
+    // Created Box -> Added Song / Did Not Add Song
+    {
+      source: 1,
+      target: 3,
+      value: usersWhoAddedASong,
+      color: "rgba(171,99,250,0.5)",
+      hovertemplate:
+        `<b>Box creators who added songs</b><br>` +
+        `Count: ${usersWhoAddedASong.toLocaleString()}<br>` +
+        `Percentage: ${((usersWhoAddedASong / usersWhoMadeABox) * 100).toFixed(1)}% of box creators<extra></extra>`,
+    },
+    {
+      source: 1,
+      target: 4,
+      value: usersWhoMadeABox - usersWhoAddedASong,
+      color: "rgba(255,161,90,0.5)",
+      hovertemplate:
+        `<b>Box creators who did not add songs</b><br>` +
+        `Count: ${(usersWhoMadeABox - usersWhoAddedASong).toLocaleString()}<br>` +
+        `Percentage: ${(((usersWhoMadeABox - usersWhoAddedASong) / usersWhoMadeABox) * 100).toFixed(1)}% of box creators<extra></extra>`,
+    },
+    // Added Song -> Collaborated / Did Not Collaborate
+    {
+      source: 3,
+      target: 5,
+      value: usersWhoCollaborated,
+      color: "rgba(25,211,243,0.5)",
+      hovertemplate:
+        `<b>Song adders who collaborated</b><br>` +
+        `Count: ${usersWhoCollaborated.toLocaleString()}<br>` +
+        `Percentage: ${((usersWhoCollaborated / usersWhoAddedASong) * 100).toFixed(1)}% of song adders<br>` +
+        `Overall: ${((usersWhoCollaborated / totalUsers) * 100).toFixed(2)}% of all users<extra></extra>`,
+    },
+    {
+      source: 3,
+      target: 6,
+      value: usersWhoAddedASong - usersWhoCollaborated,
+      color: "rgba(255,102,146,0.5)",
+      hovertemplate:
+        `<b>Song adders who did not collaborate</b><br>` +
+        `Count: ${(usersWhoAddedASong - usersWhoCollaborated).toLocaleString()}<br>` +
+        `Percentage: ${(((usersWhoAddedASong - usersWhoCollaborated) / usersWhoAddedASong) * 100).toFixed(1)}% of song adders<extra></extra>`,
+    },
+  ];
+
+  // Create the Sankey diagram
+  const data: Plotly.Data[] = [
+    {
+      type: "sankey" as const,
+      node: {
+        pad: 30,
+        thickness: 30,
+        line: { color: "gray", width: 1 },
+        label: nodeLabels,
+        color: nodeColors,
+        hovertemplate: "<b>%{label}</b><extra></extra>",
+        x: [0.1, 0.4, 0.4, 0.7, 0.7, 0.95, 0.95], // X positions for each node
+        y: [0.5, 0.3, 0.7, 0.15, 0.45, 0.05, 0.25], // Y positions for each node
+      },
+      link: {
+        source: links.map((l) => l.source),
+        target: links.map((l) => l.target),
+        value: links.map((l) => l.value),
+        color: links.map((l) => l.color),
+        hovertemplate: links.map((l) => l.hovertemplate),
+      },
+    },
+  ] as Plotly.Data[];
+
+  const layout: Partial<Plotly.Layout> = {
+    title: {
+      text: "",
+      font: { size: 20, family: "Arial" },
+    },
+    font: { size: 16, family: "Arial" },
+    height: 600,
+    margin: { l: 40, r: 40, t: 60, b: 40 },
+    plot_bgcolor: "white",
+  };
+
+  const config: Partial<Plotly.Config> = {
+    responsive: true,
+    displayModeBar: false,
+  };
+
+  document.addEventListener("DOMContentLoaded", () =>
+    Plotly.newPlot("sankey-chart", data, layout, config)
+  );
+  document.addEventListener("astro:after-swap", () =>
+    Plotly.newPlot("sankey-chart", data, layout, config)
+  );
+  document.addEventListener("astro:page-load", () =>
+    Plotly.newPlot("sankey-chart", data, layout, config)
+  );
+</script>
