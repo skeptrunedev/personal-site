@@ -17,7 +17,9 @@
     "@tailwindcss/vite": "^4.1.4",
     "astro": "5.8.0",
     "astro-icon": "^1.1.5",
+    "buffer": "^6.0.3",
     "markdown-it": "^14.1.0",
+    "plotly.js-dist": "^3.0.1",
     "sanitize-html": "^2.16.0",
     "tailwindcss": "^4.1.4",
     "three": "^0.176.0"
@@ -25,6 +27,9 @@
   "devDependencies": {
     "@iconify-json/bi": "^1.2.2",
     "@iconify-json/simple-icons": "^1.2.32",
+    "@types/d3": "^7.4.3",
+    "@types/d3-sankey": "^0.12.4",
+    "@types/plotly.js": "^3.0.2",
     "@types/three": "^0.176.0"
   }
 }

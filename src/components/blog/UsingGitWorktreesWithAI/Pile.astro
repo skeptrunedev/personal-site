@@ -73,7 +73,7 @@ const imagesToDisplay: ImageMetadata[] = imagesFromWorktreeProofs
     gridHelper.position.z = -5; // Position grid behind the y-axis
     scene.add(gridHelper);
 
-    const camera = new THREE.PerspectiveCamera(10, width / height, 0.1, 1000);
+    const camera: any = new THREE.PerspectiveCamera(10, width / height, 0.1, 1000);
     // Change the initial camera position to be at an angle
     camera.position.set(12, 5, 15);
 
