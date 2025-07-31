@@ -1,0 +1,39 @@
+---
+title: "I couldn't submit a PR, so I got hired and fixed it myself"
+slug: doing-the-little-things
+summary: >-
+  After joining Mintlify (which acquired my previous company), I finally fixed a search bug that had bothered me for over 2 years as a user - the debounced search queries weren't being aborted, causing race conditions and poaor search quality. By adding an AbortController to ensure only the most recent search query returns results, I made the search experience crisper and more responsive across their 30,000+ documentation
+author: Nicholas Khami
+createdAt: 2025-07-30T00:00:00.000Z
+updatedAt: 2025-07-30T00:00:00.000Z
+coverImage: src/assets/images/blog-posts/DoingTheLittleThings/preview.jpeg
+displayCoverImage: false
+isDraft: true
+isFeatured: true
+displaySummary: false
+categories:
+  - work
+  - mintlify
+---
+
+import NoAbortVideo from "../../components/blog/DoingTheLittleThings/NoAbortVideo.astro";
+
+Mintlify is a company that provides hosted documentation sites as a service for developers. They acquired my previous company, Trieve, and I now work there.
+
+But that's not the point of this post. Prior to joining Mintlify, I was a user of their product for over a year and, more than that, I was the founder of the company which provided the search infrastructure (Trieve) for their 30,000+ documentation sites. For that entire time, I was bothered that they never aborted the debounced search queries as you typed. Look at this madness!
+
+<NoAbortVideo />
+
+I had brought this up in our shared Slack before when I was just a vendor to them (now us I guess?), but it wasn't a priority and never got fixed. It was extra frustrating because the race condition on the query was apparent enough that search would sometimes feel low quality since it would return results for a query many characters before the user was done typing.
+
+Now that I'm on the team, I was able to finally fix it! I added an [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) to the debounced search function, so that it aborts any previous queries when a new one is made. This means that the search results are always relevant to what the user is currently typing. 
+
+I generally like George Hotz and greatly enjoyed when he joined Twitter for a week post Elon acquisition and fixed the [login popup](https://web.archive.org/web/20221122050324/https://twitter.com/realGeorgeHotz/status/1594908473875173377) (which got brought back) then summarily left. I can now finally say that I relate!
+
+This experience really highlights one of the beautiful things about open source software - when you encounter a bug or pain point, you can actually fix it yourself. Had this been an open source project during those 2 years I was frustrated with the search race condition, I could have submitted a pull request with the AbortController fix and saved myself (and thousands of other users) the daily annoyance. Instead, it remained a persistent irritation until I happened to join the company and gain access to the codebase. There's something to be said for the immediate empowerment that comes with open source - though I understand why many companies choose different models for various business reasons.
+
+If search feels just a bit crisper and more responsive on Mintlify, it’s because of me! I fixed a bug that bothered me for over a year, and it feels great to have made that little improvement to the product.
+
+I can't wait to make more! Fixing small issues like this over and over again is how products become legendary. There's something deeply satisfying about finally having the power to fix the things that annoy you - even if they're tiny. 
+
+**Especially if they're tiny.**

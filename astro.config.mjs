@@ -5,6 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
 import icon from "astro-icon";
 import mdx from "@astrojs/mdx";
+import devtoolsJson from "vite-plugin-devtools-json";
 import { SiteUrl } from "./src/theme.config";
 
 // https://astro.build/config
@@ -23,15 +24,15 @@ export default defineConfig({
     resolve: {
       alias: {
         "@": "/src",
-        "buffer": "buffer",
+        buffer: "buffer",
       },
     },
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), devtoolsJson()],
     optimizeDeps: {
       include: ["buffer"],
     },
     define: {
-      global: 'globalThis',
+      global: "globalThis",
     },
     build: {
       rollupOptions: {
