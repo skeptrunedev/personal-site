@@ -34,6 +34,9 @@ export default defineConfig({
     define: {
       global: "globalThis",
     },
+    preview: {
+      allowedHosts: true,
+    },
     build: {
       rollupOptions: {
         output: {
