@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 html {
-  @apply p-4 md:max-w-4xl bg-stone-50 text-stone-800 max-w-screen;
+  @apply ml-2 p-4 md:max-w-4xl bg-stone-50 text-stone-800 max-w-screen;
 
   nav {
     @apply flex justify-between py-2;
