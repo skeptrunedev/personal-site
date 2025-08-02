@@ -11,7 +11,7 @@ const { post, catFreqs } = Astro.props;
 ---
 
 <card>
-  <a href={`/posts/${post.id}`} class="no-underline! group">
+  <a href={`/posts/${post.id}/`} class="no-underline! group">
     {
       post.data.coverImage && (
         <Image
@@ -32,7 +32,7 @@ const { post, catFreqs } = Astro.props;
       post.data.categories.map((cat) => (
         <small>
           <code>
-            <a href={`/posts/${cat}`}>
+            <a href={`/posts/${cat}/`}>
               {cat} ({catFreqs[cat]})
             </a>
           </code>{" "}

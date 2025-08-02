@@ -43,6 +43,14 @@ const currentPath = Astro.url.pathname;
     {type && <meta property="og:type" content={type} />}
     {imageUrl && <meta property="og:image" content={imageUrl} />}
 
+    <!-- Twitter/X Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    {description && <meta name="twitter:description" content={description} />}
+    {imageUrl && <meta name="twitter:image" content={imageUrl} />}
+    <meta name="twitter:site" content="@skeptrune" />
+    <meta name="twitter:creator" content="@skeptrune" />
+
     {
       publishedTime && (
         <meta property="article:published_time" content={publishedTime} />
@@ -72,6 +80,36 @@ const currentPath = Astro.url.pathname;
       data-domain="skeptrune.com"
       src="https://plausible.trieve.ai/js/script.js"></script>
     <script
+      defer
+      data-domain="skeptrune.com"
+      src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js"
+    ></script>
+    <script
+      defer
+      data-domain="skeptrune.com"
+      src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js"
+    ></script>
+    <script>
+      interface PlausibleFunction {
+        (...args: any[]): void;
+        q?: any[];
+      }
+
+      declare global {
+        interface Window {
+          plausible?: PlausibleFunction;
+        }
+      }
+
+      (window as any).plausible =
+        (window as any).plausible ||
+        function () {
+          ((window as any).plausible.q =
+            (window as any).plausible.q || []).push(arguments);
+        };
+    </script>
+
+    <script
       src="https://analytics.ahrefs.com/analytics.js"
       data-key="FnaRYWXDrr92Pn1jXqqRAQ"
       async></script>
@@ -93,7 +131,7 @@ const currentPath = Astro.url.pathname;
       <nav class="border-b mb-12">
         <ul>
           <li><a href="/">About</a></li>
-          <li><a href="/posts">Posts</a></li>
+          <li><a href="/posts/">Posts</a></li>
           <li><a href="/rss.xml">RSS Feed</a></li>
           <li>
             <a
