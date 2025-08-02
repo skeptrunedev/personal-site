@@ -1,106 +1,123 @@
-# Pixelbook
+# Nick Khami's Personal Blog
 
-![Pixelbook](public/pixelbook.webp) ![Typescript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white) ![GitHub](https://img.shields.io/github/license/satnaing/astro-paper?color=%232F3741&style=for-the-badge) [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white&style=for-the-badge)](https://conventionalcommits.org) [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg?style=for-the-badge)](http://commitizen.github.io/cz-cli/)
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fskeptrune.com&style=for-the-badge&logo=astro&logoColor=white&label=WEBSITE&labelColor=%23FF5D01&color=%2300D8FF)](https://skeptrune.com)
+[![Built with Astro](https://img.shields.io/badge/Built%20with-Astro-FF5D01?style=for-the-badge&logo=astro&logoColor=white)](https://astro.build)
 
-Pixelbook is a starter static blog template minimally styled with PicoCSS. Equipped with out-of-the-box support for a Sitemap, RSS feed, dark/light modes, content collection configuration, Tailwind, content tags, and Iconify icons. Inspired by [eatonphil](https://eatonphil.com/).
+[![X (Twitter)](https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/skeptrune)
+[![Bluesky](https://img.shields.io/badge/Bluesky-0085FF?style=for-the-badge&logo=bluesky&logoColor=white)](https://bsky.app/profile/skeptrune.bsky.social)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/nkhami)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/skeptrunedev)
+[![Matrix](https://img.shields.io/badge/Matrix-000000?style=for-the-badge&logo=matrix&logoColor=white)](https://matrix.to/#/@skeptrune:trieve.ai)
+[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:me@skeptrune.io)
+[![RSS](https://img.shields.io/badge/RSS-FFA500?style=for-the-badge&logo=rss&logoColor=white)](https://skeptrune.com/rss.xml)
 
-See [pixelbook.skeptrune.com](https://pixelbook.skeptrune.com/) for a live demo.
+> Personal blog and portfolio website for Nick Khami, software engineer, entrepreneur, and founder/CEO of [Trieve](https://trieve.ai).
 
-## 🔥 Features
+## 🚀 About
 
-- [x] type-safe markdown
-- [x] super fast performance
-- [x] accessible
-- [x] responsive (mobile ~ desktops)
-- [x] SEO-friendly
-- [x] light & dark mode
-- [x] sitemap & rss feed
-- [x] followed best practices
-- [x] highly customizable
-- [x] dynamic OG image generation for blog posts
-- [ ] draft posts
-- [ ] pagination
+This is my personal blog where I write about software engineering, entrepreneurship, machine learning, and various technical topics. The site showcases my work, thoughts, and journey as a developer and startup founder.
 
-## 🚀 Project Structure
+### What You'll Find Here
 
-Inside of Pixelbook, you'll see the following folders and files:
+- **Technical Blog Posts**: Deep dives into software engineering, data analysis, and machine learning
+- **Entrepreneurial Insights**: Lessons learned from building startups
+- **Project Showcases**: Featured work including Trieve, Jukebox, and other open source projects
+- **Personal Updates**: Thoughts on motorcycles, reading, open source, and right to repair
 
-```bash
-├── .github/
-│   └── workflows/
-│       └── deploy-pages.yml
-├── public/
-│   ├── android-chrome-192x192.png
-│   ├── android-chrome-512x512.png
-│   ├── apple-touch-icon.png
-│   ├── favicon-16x16.png
-│   ├── favicon-32x32.png
-│   └── favicon.ico
-├── src/
-│   ├── assets/
-│   │   └── images/
-│   ├── components/
-│   │   └── BlogPostCard.astro
-│   ├── content/
-│   │   ├── blog-categories/
-│   │   └── blog-posts/
-│   ├── layouts/
-│   │   └── Simple.astro
-│   ├── pages/
-│   │   ├── posts/
-│   │   ├── 404.astro
-│   │   ├── index.astro
-│   │   └── rss.xml.js
-│   ├── styles/
-│   │   └── global.css
-│   ├── content.config.ts
-│   └── theme.config.ts
-├── astro.config.mjs
-├── CNAME
-├── .gitignore
-├── .nojekyll
-├── package.json
-├── README.md
-├── tsconfig.json
-└── yarn.lock
+## 🛠️ Tech Stack
+
+- **Framework**: [Astro](https://astro.build) - Static site generator with modern web standards
+- **Styling**: [Tailwind CSS](https://tailwindcss.com) - Utility-first CSS framework
+- **Content**: [MDX](https://mdxjs.com) - Markdown with JSX components
+- **Language**: TypeScript - Type-safe development
+
+## 📁 Project Structure
+
+```
+src/
+├── components/          # Reusable Astro components
+│   ├── BlogPostCard.astro
+│   └── blog/           # Blog-specific components
+├── content/            # Content collections
+│   ├── blog-categories/
+│   └── blog-posts/     # MDX blog posts
+├── layouts/            # Page layouts
+├── pages/              # File-based routing
+└── assets/             # Images and static assets
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## 🏃‍♂️ Getting Started
 
-Any static assets, like images, can be placed in the `public/` directory.
+1. **Clone the repository**
 
-All blog posts are stored in `src/content/blog-posts`. All content tags go in the `src/content/blog-categories`.
+   ```bash
+   git clone https://github.com/skeptrunedev/personal-site.git
+   cd personal-site
+   ```
 
-## 💻 Tech Stack
+2. **Install dependencies**
 
-**Main Framework** - [Astro](https://astro.build/)<br>
-**Type Checking** - [TypeScript](https://www.typescriptlang.org/)<br>
-**Styling** - [PicoCSS](https://picocss.com/), [TailwindCSS](https://tailwindcss.com/)<br>
-**Icons** - [Iconify via astro-icon](https://github.com/natemoo-re/astro-icon)<br>
-**Code Formatting** - [Prettier](https://prettier.io/)<br>
-**Deployment** - [Github Pages](https://pages.github.com/)
+   ```bash
+   npm install
+   ```
 
-## 🧞 Commands
+3. **Start the development server**
 
-All commands are run from the root of the project, from a terminal:
+   ```bash
+   npm run dev
+   ```
 
-> **_Note!_** For `Docker` commands we must have it [installed](https://docs.docker.com/engine/install/) in your machine.
+4. **Build for production**
+   ```bash
+   npm run build
+   ```
 
-Command        | Action
-:------------- | :-------------------------------------------
-`yarn install` | Installs dependencies
-`yarn dev`     | Starts local dev server at `localhost:4321`
-`yarn build`   | Build your production site to `./dist/`
-`yarn preview` | Preview your build locally, before deploying
+## 📝 Content Management
 
-## ✨ Feedback & Suggestions
+Blog posts are written in MDX format and stored in `src/content/blog-posts/`. Each post includes:
 
-If you have any suggestions/feedback, you can contact me via [my email](mailto:me@skeptrune.io) or on X [@skeptrune](https://x.com/skeptrune). Alternatively, feel free to open an issue if you find bugs or want to request new features.
+- Front matter with metadata (title, description, tags, etc.)
+- Rich content with embedded components
+- Category classification for organization
+- Featured post highlighting
 
-## 📜 License
+## 🎨 Data Visualizations
 
-Licensed under the MIT License, Copyright © 2025
+The blog includes interactive data visualizations powered by:
 
---------------------------------------------------------------------------------
+- [Plotly.js](https://plotly.com/javascript/) for charts and graphs
+- [Three.js](https://threejs.org/) for 3D visualizations
+- Custom Astro components for data presentation
 
-Made with 🤍
+## 📊 Analytics & Insights
+
+The `data-analysis/` directory contains:
+
+- Jukebox usage analytics and visualizations
+- User engagement data and Sankey diagrams
+- CSV datasets for various projects
+- Jupyter notebooks for data exploration
+
+## 🤝 Contributing
+
+While this is a personal blog, I welcome:
+
+- Bug reports and fixes
+- Suggestions for improvements
+- Discussions about blog content
+- Sharing of similar projects
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🏢 Professional Background
+
+- **Current**: Founder & CEO at [Trieve](https://trieve.ai) - Building the world's best search API
+- **Previous**: Software Engineer at NelNet Payment Services, zeroDAO, Breezy, and Quai
+- **Education**: B.S. Computer Science, University of Texas at Austin (2022)
+- **Programs**: Y Combinator, FUTO
+
+---
+
+_Built with ❤️ and lots of white monster ☕_
