@@ -38,14 +38,14 @@ const postsByYear = allPosts.reduce(
 );
 ---
 
-<SimpleLayout title="Posts | Trieve">
+<SimpleLayout title="All Blog Posts | Personal Blog">
   <h1>Posts</h1>
   <div class="flex flex-row flex-wrap gap-2 my-5">
     {
       Object.keys(catFreqs).map((cat) => (
         <small>
           <code>
-            <a href={`/posts/${cat}`}>
+            <a href={`/posts/${cat}/`}>
               {cat} ({catFreqs[cat]})
             </a>
           </code>{" "}

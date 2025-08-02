@@ -68,7 +68,7 @@ const i18n = entry.data;
     <div class="flex flex-row flex-wrap gap-2 mt-0">
       {
         i18n.categories.map((cat: string) => (
-          <a href={`/posts/${cat}`}>
+          <a href={`/posts/${cat}/`}>
             {cat} {catFreqs[cat] > 1 ? `(${catFreqs[cat]})` : ""}
           </a>
         ))
