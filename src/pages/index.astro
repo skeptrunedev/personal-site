@@ -1,6 +1,7 @@
 ---
 import SimpleLayout from "@layouts/Simple.astro";
-import Headshot from "../assets/images/site-content/profile-photo-cropped.png";
+import HeadshotWebP from "../assets/images/site-content/profile-photo-cropped.webp";
+import HeadshotJPEG from "../assets/images/site-content/profile-photo-cropped.jpg";
 import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 
@@ -17,7 +18,7 @@ const featuredPosts = allPosts
 <SimpleLayout
   title="Nick Khami's Blog | About"
   type="article"
-  imageUrl={Headshot.src}
+  imageUrl={HeadshotJPEG.src}
   description="About Nick Khami, a software engineer and entrepreneur, founder of Trieve, and previous work at NelNet Payment Services, zeroDAO, Breezy, and Quai."
   publishedTime="2025-04-21T00:00:00Z"
   modifiedTime="2025-04-21T00:00:00Z"
@@ -27,7 +28,10 @@ const featuredPosts = allPosts
   <article>
     <h1>Nick Khami's Blog</h1>
     <p>
-      <Image src={Headshot} alt="Headshot of Nick Khami" class="rounded w-42" />
+      <picture>
+        <source srcset={HeadshotWebP.src} type="image/webp" />
+        <Image src={HeadshotJPEG} alt="Headshot of Nick Khami" class="rounded w-42" />
+      </picture>
     </p>
 
     <p>
