@@ -10,27 +10,27 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/markdoc": "^0.15.0",
+    "@astrojs/markdoc": "0.15.4",
     "@astrojs/mdx": "4.3.0",
     "@astrojs/rss": "^4.0.11",
     "@astrojs/sitemap": "3.4.0",
-    "@tailwindcss/vite": "^4.1.4",
+    "@tailwindcss/vite": "4.1.11",
     "astro": "5.8.0",
-    "astro-icon": "^1.1.5",
-    "buffer": "^6.0.3",
+    "astro-icon": "1.1.5",
+    "buffer": "6.0.3",
     "markdown-it": "^14.1.0",
     "plotly.js-dist": "^3.0.1",
-    "sanitize-html": "^2.16.0",
+    "sanitize-html": "2.17.0",
     "tailwindcss": "^4.1.4",
     "three": "^0.176.0"
   },
   "devDependencies": {
-    "@iconify-json/bi": "^1.2.2",
-    "@iconify-json/simple-icons": "^1.2.32",
+    "@iconify-json/bi": "1.2.4",
+    "@iconify-json/simple-icons": "1.2.45",
     "@types/d3": "^7.4.3",
-    "@types/d3-sankey": "^0.12.4",
-    "@types/plotly.js": "^3.0.2",
-    "@types/three": "^0.176.0",
-    "vite-plugin-devtools-json": "^0.4.1"
+    "@types/d3-sankey": "0.12.4",
+    "@types/plotly.js": "3.0.3",
+    "@types/three": "0.178.1",
+    "vite-plugin-devtools-json": "0.4.1"
   }
 }
