@@ -1,5 +1,5 @@
 ---
-title: "dig @llm.skeptrune.com 'what is the meaning of life' TXT +short"
+title: "VPS Evangelism and LLM Over DNS"
 slug: llm-over-dns
 summary: >-
   I love the simplicity of a VPS and recently found a fun way to showcase an ideal scenario one when I stumbled upon a post on X (formerly Twitter) about using DNS queries to interact with a language model.
@@ -16,19 +16,31 @@ categories:
   - tutorial
 ---
 
-I saw [levelsio's post](https://x.com/levelsio/status/1952861177731793324) about querying an LLM through DNS and thought: "This is exactly why I love VPS servers."
+My most valuable skill as a hacker/entrepreneur is that I'm confident deploying arbitrary programs that work locally to the internet. Sounds simple, but it's really the core of what got me into Y-Combinator and later raise a seed round.
 
-Here's the thing - you can just use a VPS and be happy. It's genuinely that simple.
+## Being on the Struggle Bus Early
 
-Most people starting out think deploying stuff to the internet is this massive, complex undertaking. They get lost in the maze of cloud services, serverless functions, container orchestration, and deployment pipelines. Meanwhile, you can spin up a $4/month VPS and have your weird DNS-LLM proxy running in 15 minutes.
+When I was starting out hacking as a kid, one of the first complete things I built was a weather reply bot for Twitter. It read from the firehouse API, monitored for mentions and city names, then replied with current weather conditions when it got @'ed. My parents got me a Raspberry Pi for Christmas and I found a tutorial online. I got it working locally and then got completely stuck on deployment.
 
-This is a core skill everyone who builds programs for a living should have: the ability to deploy arbitrary programs to the internet without breaking a sweat. It should be your **default operating mode**. SSH into a box, install your dependencies, run your code. Done.
+The obvious next step was using my Pi as a server, but that was a disaster. My program had bugs and would crash while I was away. Then I couldn't SSH back in because my house didn't have a static IP and Tailscale wasn't a thing yet. It only worked on and off when I was home.
 
-Sure, there are specific reasons to opt out - extreme scale, compliance requirements, not wanting to manage SSH keys, automated CI/CD needs. But here's the key: you should only choose the complex path when you have a **specific reason** to do so. The VPS should be your starting point, not your last resort.
+## Skipping Straight to PaaS Hell
 
-I'm a VPS evangelist, and when I saw levelsio's clever hack, I realized it was the perfect excuse to showcase just how stupidly easy it is to build something like this from scratch. 
+When I started building web applications, I skipped VPS entirely and went straight to Vercel and Render. I have no idea why. I was googling "how do I deploy my create react app" and somehow the top answer was to deploy to some third-party service that handled build steps, managed SSL, and was incredibly complicated and time-consuming.
 
-Let's build our own LLM-over-DNS server. End to end. In 15 minutes.
+There was always some weird limitation: memory constraints during build, Puppeteer couldn't run because they didn't have the right apt packages. Then I was stuck building Docker images, and since AI wasn't a thing yet and I'd never used Docker at a real job, it was all a disaster. I wasted more time trying to deploy my crappy React slop than building it.
+
+## Getting Saved by a VPS Maximalist
+
+I got lucky during college and met a hacky startup entrepreneur who was hiring. I decided to take a chance and join despite the fact that it all seemed barely legitimate. In my head going into the job, the "right" way to deploy was on AWS or some other hyperscaler, but his mindset was the complete opposite. He was a VPS maximalist with a simple philosophy: rent a VPS, SSH in, do the same thing you did locally (`yarn dev` or whatever), throw up a reverse proxy, and call it a day. I watched him do it multiple times and got walked through it myself.
+
+I really started to love startups because of this. I'm grateful I got to start at the appropriate place instead of going straight into an established company where a devops team or senior engineers handled everything. I'm happy to have benefit from that level of specialization at work now, but damn am I grateful I learned the basics first. It's really just a confidence thing. I'm no longer afraid of the dark arts of being a webmaster.
+
+## Paying It Forward
+
+I've become an evangelist for this approach and wanted to write about it for a long time, but didn't know how to frame it entertainingly. Then on X, I got inspiration when levelsio posted a tweet about [deploying a DNS server on Hetzner that lets you talk to an LLM](https://x.com/levelsio/status/1952861177731793324).
+
+Getting that setup is probably more interesting than my rambling, so here's how to deploy your own LLM-over-DNS proxy on a VPS in less than half an hour with nothing other than a rented server.
 
 ## Step 1: Access Your VPS
 
