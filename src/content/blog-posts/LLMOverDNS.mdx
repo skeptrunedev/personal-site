@@ -1,8 +1,8 @@
 ---
-title: "VPS Evangelism and LLM Over DNS"
+title: "VPS Evangelism and Building LLM-over-DNS"
 slug: llm-over-dns
 summary: >-
-  I love the simplicity of a VPS and recently found a fun way to showcase an ideal scenario one when I stumbled upon a post on X (formerly Twitter) about using DNS queries to interact with a language model.
+  From PaaS hell to VPS enlightenment: Why the skill of confidently deploying anything to the internet is a hacker's superpower. Plus, a hands-on tutorial showing how to build your own LLM-over-DNS service in 30 minutes—because sometimes the most impressive demos come from the simplest infrastructure.
 author: Nicholas Khami
 createdAt: 2025-08-06T18:52:00.000Z
 updatedAt: 2025-08-06T18:52:00.000Z
@@ -16,7 +16,7 @@ categories:
   - tutorial
 ---
 
-My most valuable skill as a hacker/entrepreneur is that I'm confident deploying arbitrary programs that work locally to the internet. Sounds simple, but it's really the core of what got me into Y-Combinator and later raise a seed round.
+My most valuable skill as a hacker/entrepreneur is that I'm confident deploying arbitrary programs that work locally to the internet. Sounds simple, but it's really the core of what got me into Y-Combinator and later helped me raise a seed round.
 
 ## Being on the Struggle Bus Early
 
@@ -26,19 +26,27 @@ The obvious next step was using my Pi as a server, but that was a disaster. My p
 
 ## Skipping Straight to PaaS Hell
 
-When I started building web applications, I skipped VPS entirely and went straight to Vercel and Render. I have no idea why. I was googling "how do I deploy my create react app" and somehow the top answer was to deploy to some third-party service that handled build steps, managed SSL, and was incredibly complicated and time-consuming.
+When I started building web applications, I somehow skipped VPS entirely and went straight to Platform as a Service Solutions like Vercel and Render. I have no idea why. I was googling "how do I deploy my create react app" and somehow the top answer was to deploy to some third-party service that handled build steps, managed SSL, and was incredibly complicated and time-consuming.
 
-There was always some weird limitation: memory constraints during build, Puppeteer couldn't run because they didn't have the right apt packages. Then I was stuck building Docker images, and since AI wasn't a thing yet and I'd never used Docker at a real job, it was all a disaster. I wasted more time trying to deploy my crappy React slop than building it.
+There was always some weird limitation: memory constraints during build, Puppeteer couldn't run because they didn't have the right apt packages. Then I was stuck configuring Docker images, and since AI wasn't a thing yet and I'd never used Docker at a real job, it was all a disaster. I wasted more time trying to deploy my crappy React slop than building it.
 
 ## Getting Saved by a VPS Maximalist
 
-I got lucky during college and met a hacky startup entrepreneur who was hiring. I decided to take a chance and join despite the fact that it all seemed barely legitimate. In my head going into the job, the "right" way to deploy was on AWS or some other hyperscaler, but his mindset was the complete opposite. He was a VPS maximalist with a simple philosophy: rent a VPS, SSH in, do the same thing you did locally (`yarn dev` or whatever), throw up a reverse proxy, and call it a day. I watched him do it multiple times and got walked through it myself.
+During college, I got lucky and met a hacky startup entrepreneur who was hiring. I decided to take a chance and join, even though the whole operation seemed barely legitimate. 
 
-I really started to love startups because of this. I'm grateful I got to start at the appropriate place instead of going straight into an established company where a devops team or senior engineers handled everything. I'm happy to have benefit from that level of specialization at work now, but damn am I grateful I learned the basics first. It's really just a confidence thing. I'm no longer afraid of the dark arts of being a webmaster.
+Going into the job, I had this assumption that the "right" way to deploy was on AWS or some other hyperscaler. But this guy's mindset was the complete opposite—he was a VPS maximalist with a beautifully simple philosophy: rent a VPS, SSH in, do the same thing you did locally (`yarn dev` or whatever), throw up a reverse proxy, and call it a day. I watched him deploy like this over and over, and eventually he walked me through it myself a few times.
+
+It was all so small and easy to learn, but it made me exponentially more confident as a builder. I never directly thought, "I can't build this because I won't be able to deploy it," but the general insecurity definitely caused a hesitancy and procrastination that immediately went away.
 
 ## Paying It Forward
 
 I've become an evangelist for this approach and wanted to write about it for a long time, but didn't know how to frame it entertainingly. Then on X, I got inspiration when levelsio posted a tweet about [deploying a DNS server on Hetzner that lets you talk to an LLM](https://x.com/levelsio/status/1952861177731793324).
+
+Want to see it in action? Try this:
+
+```bash
+dig @llm.skeptrune.com "what is the meaning of life?" TXT +short
+```
 
 Getting that setup is probably more interesting than my rambling, so here's how to deploy your own LLM-over-DNS proxy on a VPS in less than half an hour with nothing other than a rented server.
 
@@ -96,19 +104,23 @@ class LLMResolver(BaseResolver):
         prompt = str(qname).rstrip('.')
         
         # Forward prompt to LLM
-        response = requests.post(
-            LLM_API_URL,
-            headers={
-                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "openai/gpt-3.5-turbo",
-                "messages": [{"role": "user", "content": prompt}]
-            },
-            timeout=10
-        )
-        raw_answer = response.json()["choices"][0]["message"]["content"]
+        try:
+            response = requests.post(
+                LLM_API_URL,
+                headers={
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "openai/gpt-3.5-turbo",
+                    "messages": [{"role": "user", "content": prompt}]
+                },
+                timeout=10
+            )
+            response.raise_for_status()
+            raw_answer = response.json()["choices"][0]["message"]["content"]
+        except Exception as e:
+            raw_answer = f"Error: {str(e)}"
         
         try:
             answer = codecs.decode(raw_answer.encode('utf-8'), 'unicode_escape')
@@ -136,7 +148,11 @@ if __name__ == "__main__":
         time.sleep(1)
 ```
 
-Save this as `llm_dns.py` on your VPS. Don't forget to add your OpenRouter API key to the `OPENROUTER_API_KEY` variable.
+Save this as `llm_dns.py` on your VPS. 
+
+Before running, you need to set your OpenRouter API key. For this tutorial, you can paste it directly into the `OPENROUTER_API_KEY` variable. For anything more serious, you should use an environment variable to keep your key out of the code.
+
+**Security Note**: This is a proof-of-concept. For production use, you'd want proper process management (systemd), logging, rate limiting, and to avoid storing API keys in plaintext.
 
 ## Step 5: Run the DNS-LLM Proxy
 
@@ -156,6 +172,14 @@ dig @<your-vps-ip> "what is the meaning of life" TXT +short
 
 The LLM's response should appear in the output.
 
+## Troubleshooting
+
+**Common Issues:**
+- `Permission denied`: Make sure you're running with `sudo` (port 53 requires root)
+- `Connection timeout`: Check your VPS firewall settings and ensure port 53 is open
+- `API errors`: Verify your OpenRouter API key and check your account has credits
+- `No response`: Try running `systemctl status systemd-resolved` to ensure it's actually disabled
+
 ## Step 7: Secure Your Setup (Optional but Recommended)
 
 To restrict access to your DNS-LLM proxy, use UFW (Uncomplicated Firewall) - and yes, it's literally called "uncomplicated" because that's what a VPS is, uncomplicated:
@@ -167,6 +191,8 @@ ufw enable
 ```
 
 This allows SSH access (so you don't lock yourself out) and DNS queries on port 53, while blocking everything else by default.
+
+**Important**: This setup runs as root and stores your API key in plaintext. For anything beyond experimentation, consider using environment variables, proper user accounts, and process managers like systemd.
 
 ## References
 
