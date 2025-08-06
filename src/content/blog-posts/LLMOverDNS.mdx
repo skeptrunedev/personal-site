@@ -1,0 +1,164 @@
+---
+title: "dig @llm.skeptrune.com 'what is the meaning of life' TXT +short"
+slug: llm-over-dns
+summary: >-
+  I love the simplicity of a VPS and recently found a fun way to showcase an ideal scenario one when I stumbled upon a post on X (formerly Twitter) about using DNS queries to interact with a language model.
+author: Nicholas Khami
+createdAt: 2025-08-06T18:52:00.000Z
+updatedAt: 2025-08-06T18:52:00.000Z
+coverImage: src/assets/images/blog-posts/LLMOverDNS/open-graph.jpg
+displayCoverImage: false
+isDraft: false
+isFeatured: false
+displaySummary: false
+categories:
+  - vps
+  - tutorial
+---
+
+I saw [levelsio's post](https://x.com/levelsio/status/1952861177731793324) about querying an LLM through DNS and thought: "This is exactly why I love VPS servers."
+
+Here's the thing - you can just use a VPS and be happy. It's genuinely that simple.
+
+Most people starting out think deploying stuff to the internet is this massive, complex undertaking. They get lost in the maze of cloud services, serverless functions, container orchestration, and deployment pipelines. Meanwhile, you can spin up a $4/month VPS and have your weird DNS-LLM proxy running in 15 minutes.
+
+This is a core skill everyone who builds programs for a living should have: the ability to deploy arbitrary programs to the internet without breaking a sweat. It should be your **default operating mode**. SSH into a box, install your dependencies, run your code. Done.
+
+Sure, there are specific reasons to opt out - extreme scale, compliance requirements, not wanting to manage SSH keys, automated CI/CD needs. But here's the key: you should only choose the complex path when you have a **specific reason** to do so. The VPS should be your starting point, not your last resort.
+
+I'm a VPS evangelist, and when I saw levelsio's clever hack, I realized it was the perfect excuse to showcase just how stupidly easy it is to build something like this from scratch. 
+
+Let's build our own LLM-over-DNS server. End to end. In 15 minutes.
+
+## Step 1: Access Your VPS
+
+After purchasing your VPS, you'll receive an IP address and login credentials (usually via email). Connect to your server:
+
+```bash
+ssh root@<your-vps-ip>
+```
+
+Replace `<your-vps-ip>` with your actual server IP address.
+
+## Step 2: Clear Existing DNS Services
+
+Many VPS images come with `systemd-resolved` or `bind9` pre-installed. To avoid conflicts, remove or disable them:
+
+```bash
+# Check for running DNS services
+systemctl list-units --type=service | grep -E 'bind|dns|systemd-resolved'
+
+# Stop and disable systemd-resolved (if present)
+systemctl stop systemd-resolved
+systemctl disable systemd-resolved
+
+# Remove bind9 (if present)
+apt-get remove --purge bind9 -y
+```
+
+## Step 3: Install Python Dependencies
+
+Install the required Python packages for our DNS server:
+
+```bash
+pip install dnslib requests
+```
+
+## Step 4: Create the DNS-to-LLM Proxy Script
+
+Create a Python script that listens for DNS queries, treats the question as a prompt, sends it to the OpenRouter LLM API, and returns the response in a TXT record:
+
+```python
+from dnslib.server import DNSServer, BaseResolver
+from dnslib import RR, QTYPE, TXT
+import requests
+import codecs
+
+OPENROUTER_API_KEY = ""  # Add your OpenRouter API key here
+LLM_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+class LLMResolver(BaseResolver):
+    def resolve(self, request, handler):
+        qname = request.q.qname
+        qtype = QTYPE[request.q.qtype]
+        prompt = str(qname).rstrip('.')
+        
+        # Forward prompt to LLM
+        response = requests.post(
+            LLM_API_URL,
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "openai/gpt-3.5-turbo",
+                "messages": [{"role": "user", "content": prompt}]
+            },
+            timeout=10
+        )
+        raw_answer = response.json()["choices"][0]["message"]["content"]
+        
+        try:
+            answer = codecs.decode(raw_answer.encode('utf-8'), 'unicode_escape')
+        except Exception:
+            answer = raw_answer.replace('\\010', '\n').replace('\\n', '\n')
+        
+        reply = request.reply()
+        if qtype == "TXT":
+            # Split long responses into chunks of 200 chars (safe limit)
+            chunk_size = 200
+            if len(answer) > chunk_size:
+                chunks = [answer[i:i+chunk_size] for i in range(0, len(answer), chunk_size)]
+                for i, chunk in enumerate(chunks):
+                    reply.add_answer(RR(qname, QTYPE.TXT, rdata=TXT(f"[{i+1}/{len(chunks)}] {chunk}")))
+            else:
+                reply.add_answer(RR(qname, QTYPE.TXT, rdata=TXT(answer)))
+        return reply
+
+if __name__ == "__main__":
+    resolver = LLMResolver()
+    server = DNSServer(resolver, port=53, address="0.0.0.0")
+    server.start_thread()
+    import time
+    while True:
+        time.sleep(1)
+```
+
+Save this as `llm_dns.py` on your VPS. Don't forget to add your OpenRouter API key to the `OPENROUTER_API_KEY` variable.
+
+## Step 5: Run the DNS-LLM Proxy
+
+Start the DNS server (port 53 requires root privileges):
+
+```bash
+sudo python3 llm_dns.py
+```
+
+## Step 6: Test Your Service
+
+From another machine, send a DNS TXT query to test your setup:
+
+```bash
+dig @<your-vps-ip> "what is the meaning of life" TXT +short
+```
+
+The LLM's response should appear in the output.
+
+## Step 7: Secure Your Setup (Optional but Recommended)
+
+To restrict access to your DNS-LLM proxy, use UFW (Uncomplicated Firewall) - and yes, it's literally called "uncomplicated" because that's what a VPS is, uncomplicated:
+
+```bash
+ufw allow ssh
+ufw allow 53
+ufw enable
+```
+
+This allows SSH access (so you don't lock yourself out) and DNS queries on port 53, while blocking everything else by default.
+
+## References
+
+- [dnslib documentation](https://dnslib.readthedocs.io/en/latest/)
+- [OpenRouter API docs](https://openrouter.ai/)
+
+That's it! You now have your own LLM-over-DNS proxy running on a simple VPS. No complex infrastructure needed - just SSH, install dependencies, and run your code. This is the beauty of keeping things simple.
