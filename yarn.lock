@@ -23,67 +23,35 @@
   resolved "https://registry.yarnpkg.com/@antfu/utils/-/utils-8.1.1.tgz#95b1947d292a9a2efffba2081796dcaa05ecedfb"
   integrity sha512-Mex9nXf9vR6AhcXmMrlz/HVgYYZpVGJ6YlPgwl7UnaFpnshXs6EK/oa5Gpf3CzENMjkvEx2tQtntGnb7UtSTOQ==
 
-"@astrojs/compiler@^2.11.0":
+"@astrojs/compiler@^2.12.2":
   version "2.12.2"
   resolved "https://registry.yarnpkg.com/@astrojs/compiler/-/compiler-2.12.2.tgz#5913b6ec7efffebdfb37fae9a50122802ae08c64"
   integrity sha512-w2zfvhjNCkNMmMMOn5b0J8+OmUaBL1o40ipMvqcG6NRpdC+lKxmTi48DT8Xw0SzJ3AfmeFLB45zXZXtmbsjcgw==
 
-"@astrojs/internal-helpers@0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@astrojs/internal-helpers/-/internal-helpers-0.6.1.tgz#87d0f5dbe4bdc2b61c6409672b921bca193abad6"
-  integrity sha512-l5Pqf6uZu31aG+3Lv8nl/3s4DbUzdlxTWDof4pEpto6GUJNhhCbelVi9dEyurOVyqaelwmS9oSyOWOENSfgo9A==
+"@astrojs/internal-helpers@0.7.2":
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/@astrojs/internal-helpers/-/internal-helpers-0.7.2.tgz#e7915913a9ad0b6e56d2c89bcc26b22d36006f27"
+  integrity sha512-KCkCqR3Goym79soqEtbtLzJfqhTWMyVaizUi35FLzgGSzBotSw8DB1qwsu7U96ihOJgYhDk2nVPz+3LnXPeX6g==
 
-"@astrojs/internal-helpers@0.7.1":
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/@astrojs/internal-helpers/-/internal-helpers-0.7.1.tgz#50ce657c415b18b88369e9c6eeb12da208783905"
-  integrity sha512-7dwEVigz9vUWDw3nRwLQ/yH/xYovlUA0ZD86xoeKEBmkz9O6iELG1yri67PgAPW6VLL/xInA4t7H0CK6VmtkKQ==
-
-"@astrojs/markdoc@0.15.4":
-  version "0.15.4"
-  resolved "https://registry.yarnpkg.com/@astrojs/markdoc/-/markdoc-0.15.4.tgz#168ef566248953ace02bd96670e46f2342a3d9eb"
-  integrity sha512-q8ib0j7yPQ04Koiz34RjNMl/kcqfPtrAeYKFXEfZCVa2EkTdmNBG4nZzVoOUWcBXG/tMEmxJ9E+SOoyrO+dEvg==
+"@astrojs/markdoc@0.15.5":
+  version "0.15.5"
+  resolved "https://registry.yarnpkg.com/@astrojs/markdoc/-/markdoc-0.15.5.tgz#bf86a8b6a8caff7686bdeeb809ef5b75813d063e"
+  integrity sha512-rW1VHKOJkddb4XBd0kQwgphzHIH2102Yse6GdDjs4bxACYaPZbLB/+kw4grUhmbTnzOh+dU4Cb+gYuiaHsSb5Q==
   dependencies:
-    "@astrojs/internal-helpers" "0.7.1"
-    "@astrojs/markdown-remark" "6.3.5"
+    "@astrojs/internal-helpers" "0.7.2"
+    "@astrojs/markdown-remark" "6.3.6"
     "@astrojs/prism" "3.3.0"
     "@markdoc/markdoc" "^0.5.1"
     esbuild "^0.25.0"
     github-slugger "^2.0.0"
     htmlparser2 "^10.0.0"
 
-"@astrojs/markdown-remark@6.3.2":
-  version "6.3.2"
-  resolved "https://registry.yarnpkg.com/@astrojs/markdown-remark/-/markdown-remark-6.3.2.tgz#b85bab36bc92bd9426e75f2efcbdfde26fad57d8"
-  integrity sha512-bO35JbWpVvyKRl7cmSJD822e8YA8ThR/YbUsciWNA7yTcqpIAL2hJDToWP5KcZBWxGT6IOdOkHSXARSNZc4l/Q==
+"@astrojs/markdown-remark@6.3.6":
+  version "6.3.6"
+  resolved "https://registry.yarnpkg.com/@astrojs/markdown-remark/-/markdown-remark-6.3.6.tgz#f2fca6d291559df9a428dc01cb371a31ee12f3f6"
+  integrity sha512-bwylYktCTsLMVoCOEHbn2GSUA3c5KT/qilekBKA3CBng0bo1TYjNZPr761vxumRk9kJGqTOtU+fgCAp5Vwokug==
   dependencies:
-    "@astrojs/internal-helpers" "0.6.1"
-    "@astrojs/prism" "3.3.0"
-    github-slugger "^2.0.0"
-    hast-util-from-html "^2.0.3"
-    hast-util-to-text "^4.0.2"
-    import-meta-resolve "^4.1.0"
-    js-yaml "^4.1.0"
-    mdast-util-definitions "^6.0.0"
-    rehype-raw "^7.0.0"
-    rehype-stringify "^10.0.1"
-    remark-gfm "^4.0.1"
-    remark-parse "^11.0.0"
-    remark-rehype "^11.1.2"
-    remark-smartypants "^3.0.2"
-    shiki "^3.2.1"
-    smol-toml "^1.3.1"
-    unified "^11.0.5"
-    unist-util-remove-position "^5.0.0"
-    unist-util-visit "^5.0.0"
-    unist-util-visit-parents "^6.0.1"
-    vfile "^6.0.3"
-
-"@astrojs/markdown-remark@6.3.5":
-  version "6.3.5"
-  resolved "https://registry.yarnpkg.com/@astrojs/markdown-remark/-/markdown-remark-6.3.5.tgz#4049142d402cd5de28b2dbc7cf3cb8d25df866d3"
-  integrity sha512-MiR92CkE2BcyWf3b86cBBw/1dKiOH0qhLgXH2OXA6cScrrmmks1Rr4Tl0p/lFpvmgQQrP54Pd1uidJfmxGrpWQ==
-  dependencies:
-    "@astrojs/internal-helpers" "0.7.1"
+    "@astrojs/internal-helpers" "0.7.2"
     "@astrojs/prism" "3.3.0"
     github-slugger "^2.0.0"
     hast-util-from-html "^2.0.3"
@@ -105,12 +73,12 @@
     unist-util-visit-parents "^6.0.1"
     vfile "^6.0.3"
 
-"@astrojs/mdx@4.3.0":
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/@astrojs/mdx/-/mdx-4.3.0.tgz#1656383910e1e29c955a17a88866382c975e8224"
-  integrity sha512-OGX2KvPeBzjSSKhkCqrUoDMyzFcjKt5nTE5SFw3RdoLf0nrhyCXBQcCyclzWy1+P+XpOamn+p+hm1EhpCRyPxw==
+"@astrojs/mdx@4.3.4":
+  version "4.3.4"
+  resolved "https://registry.yarnpkg.com/@astrojs/mdx/-/mdx-4.3.4.tgz#bb87e32694a70a6b9a8b5459abf835a8d4e7b927"
+  integrity sha512-Ew3iP+6zuzzJWNEH5Qr1iknrue1heEfgmfuMpuwLaSwqlUiJQ0NDb2oxKosgWU1ROYmVf1H4KCmS6QdMWKyFjw==
   dependencies:
-    "@astrojs/markdown-remark" "6.3.2"
+    "@astrojs/markdown-remark" "6.3.6"
     "@mdx-js/mdx" "^3.1.0"
     acorn "^8.14.1"
     es-module-lexer "^1.6.0"
@@ -131,7 +99,7 @@
   dependencies:
     prismjs "^1.30.0"
 
-"@astrojs/rss@^4.0.11":
+"@astrojs/rss@4.0.12":
   version "4.0.12"
   resolved "https://registry.yarnpkg.com/@astrojs/rss/-/rss-4.0.12.tgz#ce3505a184232b59b596dbb77e496ca8b1b00fd2"
   integrity sha512-O5yyxHuDVb6DQ6VLOrbUVFSm+NpObulPxjs6XT9q3tC+RoKbN4HXMZLpv0LvXd1qdAjzVgJ1NFD+zKHJNDXikw==
@@ -139,14 +107,14 @@
     fast-xml-parser "^5.2.0"
     kleur "^4.1.5"
 
-"@astrojs/sitemap@3.4.0":
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/@astrojs/sitemap/-/sitemap-3.4.0.tgz#3eaad704eb4ed2e0420e8b81546420dffabb159b"
-  integrity sha512-C5m/xsKvRSILKM3hy47n5wKtTQtJXn8epoYuUmCCstaE9XBt20yInym3Bz2uNbEiNfv11bokoW0MqeXPIvjFIQ==
+"@astrojs/sitemap@3.5.0":
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/@astrojs/sitemap/-/sitemap-3.5.0.tgz#b43c88d3046f7d335882b47242ca3c0b0a5ede28"
+  integrity sha512-ldOvoBxuRgpcdndzksskOTzU55g76tkHC/POpejUbPGz6zR4rJKiXh8thX4WEPWDhCTZUafhJ1qf7k1muStHfg==
   dependencies:
     sitemap "^8.0.0"
     stream-replace-string "^2.0.0"
-    zod "^3.24.2"
+    zod "^3.24.4"
 
 "@astrojs/telemetry@3.3.0":
   version "3.3.0"
@@ -1592,14 +1560,14 @@ astro-icon@1.1.5:
     "@iconify/types" "^2.0.0"
     "@iconify/utils" "^2.1.30"
 
-astro@5.8.0:
-  version "5.8.0"
-  resolved "https://registry.yarnpkg.com/astro/-/astro-5.8.0.tgz#d6a493ef712eecd05b34517d7f13d7b09f00b5e2"
-  integrity sha512-G57ELkdIntDiSrucA5lQaRtBOjquaZ9b9NIwoz2f471ZuuJcynLjWgItgBzlrz5UMY4WqnFbVWUCKlJb7nt9bA==
+astro@5.13.2:
+  version "5.13.2"
+  resolved "https://registry.yarnpkg.com/astro/-/astro-5.13.2.tgz#13e7a92516ba6e0cec9708267d43baffe31ade15"
+  integrity sha512-yjcXY0Ua3EwjpVd3GoUXa65HQ6qgmURBptA+M9GzE0oYvgfuyM7bIbH8IR/TWIbdefVUJR5b7nZ0oVnMytmyfQ==
   dependencies:
-    "@astrojs/compiler" "^2.11.0"
-    "@astrojs/internal-helpers" "0.6.1"
-    "@astrojs/markdown-remark" "6.3.2"
+    "@astrojs/compiler" "^2.12.2"
+    "@astrojs/internal-helpers" "0.7.2"
+    "@astrojs/markdown-remark" "6.3.6"
     "@astrojs/telemetry" "3.3.0"
     "@capsizecss/unpack" "^2.4.0"
     "@oslojs/encoding" "^1.1.0"
@@ -1642,6 +1610,7 @@ astro@5.8.0:
     rehype "^13.0.2"
     semver "^7.7.1"
     shiki "^3.2.1"
+    smol-toml "^1.3.4"
     tinyexec "^0.3.2"
     tinyglobby "^0.2.12"
     tsconfck "^3.1.5"
@@ -1655,7 +1624,7 @@ astro@5.8.0:
     xxhash-wasm "^1.1.0"
     yargs-parser "^21.1.1"
     yocto-spinner "^0.2.1"
-    zod "^3.24.2"
+    zod "^3.24.4"
     zod-to-json-schema "^3.24.5"
     zod-to-ts "^1.2.0"
   optionalDependencies:
@@ -4333,7 +4302,7 @@ sitemap@^8.0.0:
     arg "^5.0.0"
     sax "^1.2.4"
 
-smol-toml@^1.3.1, smol-toml@^1.3.4:
+smol-toml@^1.3.4:
   version "1.4.2"
   resolved "https://registry.yarnpkg.com/smol-toml/-/smol-toml-1.4.2.tgz#46c4dcc71f982040085ee54b22377c96a4597ce3"
   integrity sha512-rInDH6lCNiEyn3+hH8KVGFdbjc099j47+OSgbMrfDYX1CmXLfdKd7qi6IfcWj2wFxvSVkuI46M+wPGYfEOEj6g==
@@ -4747,7 +4716,7 @@ vite-plugin-devtools-json@0.4.1:
   dependencies:
     uuid "^11.1.0"
 
-vite@^6.3.4:
+vite@^6.0.0, vite@^6.3.4:
   version "6.3.5"
   resolved "https://registry.yarnpkg.com/vite/-/vite-6.3.5.tgz#fec73879013c9c0128c8d284504c6d19410d12a3"
   integrity sha512-cZn6NDFE7wdTpINgs++ZJ4N49W2vRp8LCKrn3Ob1kYNtOo21vfDoaV5GzBfLU4MovSAB8uNRm4jgzVQZ+mBzPQ==
@@ -4933,7 +4902,7 @@ zod@3.22.3:
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.22.3.tgz#2fbc96118b174290d94e8896371c95629e87a060"
   integrity sha512-EjIevzuJRiRPbVH4mGc8nApb/lVLKVpmUhAaR5R5doKGfAnGJ6Gr3CViAVjP+4FWSxCsybeWQdcgCtbX+7oZug==
 
-zod@^3.24.2:
+zod@^3.24.4:
   version "3.25.76"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
   integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==
