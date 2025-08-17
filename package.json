@@ -31,6 +31,7 @@
     "@types/d3-sankey": "0.12.4",
     "@types/plotly.js": "3.0.3",
     "@types/three": "0.178.1",
-    "vite-plugin-devtools-json": "0.4.1"
+    "vite-plugin-devtools-json": "0.4.1",
+    "wrangler": "^4.30.0"
   }
 }
