@@ -19,4 +19,4 @@ export const SocialLinks = [
 
 export const SiteName = "Nick Khami's Blog";
 
-export const SiteUrl = "https://nkhami.com";
+export const SiteUrl = "https://www.skeptrune.com";
