@@ -49,6 +49,8 @@ export default defineConfig({
   },
   redirects: {
     "/posts/git-worktrees-with-AI/": "/posts/git-worktrees-agents-and-tmux/",
+    "/posts/posts/making-sites-accessible-for-agents/":
+      "/posts/use-the-accept-header-to-serve-markdown-instead-of-html-to-llms/",
   },
   experimental: {
     fonts: [

@@ -1,6 +1,22 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    const redirects = {
+      "/posts/git-worktrees-with-AI/": "/posts/git-worktrees-agents-and-tmux/",
+      "/posts/making-sites-accessible-for-agents/":
+        "/posts/use-the-accept-header-to-serve-markdown-instead-of-html-to-llms/",
+    };
+
+    if (redirects[url.pathname]) {
+      console.log(`Redirecting ${url.pathname} to ${redirects[url.pathname]}`);
+
+      return Response.redirect(
+        new URL(redirects[url.pathname], url.origin),
+        301
+      );
+    }
+
     const acceptHeader = request.headers.get("accept") || "";
 
     const acceptTypes = acceptHeader.split(",");
