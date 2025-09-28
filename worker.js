@@ -3,55 +3,103 @@ export default {
     const url = new URL(request.url);
     const acceptHeader = request.headers.get("accept") || "";
 
-    const blogPostMatch = url.pathname.match(/^\/posts\/([^\/]+)\/?$/);
-    if (blogPostMatch && acceptHeader.includes("text/plain")) {
-      const slug = blogPostMatch[1];
+    console.log(`Worker called: ${url.pathname}, Accept: ${acceptHeader}`);
 
-      const slugToFile = {
-        "using-git-worktrees-with-ai": "UsingGitWorktreesWithAI.mdx",
-        "git-worktrees-agents-and-tmux": "UsingGitWorktreesWithAI.mdx",
-        "how-to-use-midjourney": "HowToUseMidjourney.mdx",
-        "taking-dkg-from-papers-to-production":
-          "TakingDKGFromPapersToProduction.mdx",
-        "building-the-server-for-threshold-multisigs":
-          "MakingTheServerForThresholdMultisigs.mdx",
-        "jukebox-hacker-news": "JukeboxAnalysis.mdx",
-        "doing-the-little-things": "DoingTheLittleThings.mdx",
-        "llm-over-dns": "LLMOverDNS.mdx",
-      };
+    const acceptTypes = acceptHeader.split(",");
 
-      const filename = slugToFile[slug];
-      if (filename) {
+    const plainIndex = acceptTypes.findIndex(
+      (t) => t.includes("text/plain") || t.includes("text/markdown")
+    );
+    const htmlIndex = acceptTypes.findIndex((t) => t.includes("text/html"));
+    const prefersMarkdown =
+      plainIndex !== -1 && (htmlIndex === -1 || plainIndex < htmlIndex);
+
+    const tryServeContent = async (format) => {
+      let contentType;
+
+      if (format === "markdown") {
+        contentType = "text/plain; charset=utf-8";
+        let distPath = `/markdown${url.pathname}`;
+
+        if (!distPath.endsWith(".md") && !distPath.endsWith("/")) {
+          distPath += "/index.md";
+        } else if (distPath.endsWith("/")) {
+          distPath += "index.md";
+        }
+
+        // Handle root path
+        if (url.pathname === "/") {
+          distPath = "/markdown/index.md";
+        }
+
         try {
-          const mdxResponse = await fetch(
-            `${url.origin}/content/blog-posts/${filename}`,
-            {
-              cf: { cacheTtl: 3600 }, // Cache for 1 hour
-            }
+          const response = await env.ASSETS.fetch(
+            new Request(new URL(distPath, request.url))
           );
-
-          if (mdxResponse.ok) {
-            const mdxContent = await mdxResponse.text();
-
-            const contentWithoutFrontmatter = mdxContent.replace(
-              /^---[\s\S]*?---\n/,
-              ""
-            );
-
-            return new Response(contentWithoutFrontmatter, {
+          if (response.ok) {
+            const content = await response.text();
+            return new Response(content, {
               headers: {
-                "Content-Type": "text/plain; charset=utf-8",
+                "Content-Type": contentType,
                 "Cache-Control": "public, max-age=3600",
               },
             });
           }
         } catch (error) {
-          console.error("Error fetching MDX file:", error);
+          console.error(`Error fetching HTML file from ${distPath}:`, error);
+        }
+      } else {
+        contentType = "text/html; charset=utf-8";
+        let distPath = `/html${url.pathname}`;
+
+        if (!distPath.endsWith(".html") && !distPath.endsWith("/")) {
+          distPath += "/index.html";
+        } else if (distPath.endsWith("/")) {
+          distPath += "index.html";
+        }
+
+        // Handle root path
+        if (url.pathname === "/") {
+          distPath = "/html/index.html";
+        }
+
+        try {
+          const response = await env.ASSETS.fetch(
+            new Request(new URL(distPath, request.url))
+          );
+          if (response.ok) {
+            const content = await response.text();
+            return new Response(content, {
+              headers: {
+                "Content-Type": contentType,
+                "Cache-Control": "public, max-age=3600",
+              },
+            });
+          }
+        } catch (error) {
+          console.error(`Error fetching HTML file from ${distPath}:`, error);
         }
       }
+
+      return null;
+    };
+
+    if (prefersMarkdown) {
+      const markdownResponse = await tryServeContent("markdown");
+      if (markdownResponse) return markdownResponse;
+
+      const htmlResponse = await tryServeContent("html");
+      if (htmlResponse) return htmlResponse;
+    } else {
+      const htmlResponse = await tryServeContent("html");
+      if (htmlResponse) return htmlResponse;
+
+      const markdownResponse = await tryServeContent("markdown");
+      if (markdownResponse) return markdownResponse;
     }
 
-    // For all other requests, fetch from origin
-    return fetch(request);
+    return await env.ASSETS.fetch(
+      new Request(new URL("/404.html", request.url))
+    );
   },
 };

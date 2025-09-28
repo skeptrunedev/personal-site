@@ -5,8 +5,9 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && yarn copy-mdx",
-    "copy-mdx": "mkdir -p dist/content/blog-posts && cp src/content/blog-posts/*.mdx dist/content/blog-posts/",
+    "build": "astro build && yarn mv-html && yarn convert-to-markdown",
+    "mv-html": "mkdir -p dist/html && find dist -type f -name '*.html' -not -path 'dist/html/*' -exec sh -c 'for f; do dest=\"dist/html/${f#dist/}\"; mkdir -p \"$(dirname \"$dest\")\"; mv -f \"$f\" \"$dest\"; done' sh {} +",
+    "convert-to-markdown": "bash convert-to-markdown.sh",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -32,6 +33,7 @@
     "@types/d3-sankey": "0.12.4",
     "@types/plotly.js": "3.0.6",
     "@types/three": "0.180.0",
+    "@wcj/html-to-markdown-cli": "^2.1.0",
     "vite-plugin-devtools-json": "1.0.0",
     "wrangler": "4.40.2"
   },
