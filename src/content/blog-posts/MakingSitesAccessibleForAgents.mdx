@@ -1,0 +1,246 @@
+---
+title: "LLM agents need sites to respect 'Accept: text/plain'"
+slug: making-sites-accessible-for-agents
+summary: Make your website accessible to LLM agents by serving plain Markdown when they request text/plain or text/markdown. Save tokens and improve agent experience with this simple Astro and Cloudflare Workers implementation.
+author: Nicholas Khami
+createdAt: 2025-09-27T18:52:00.000Z
+updatedAt: 2025-09-27T18:52:00.000Z
+coverImage: src/assets/images/blog-posts/MakingSitesAccessibleForAgents/post-on-token-reduction.webp
+displayCoverImage: false
+isDraft: false
+isFeatured: true
+displaySummary: false
+categories:
+  - ai
+---
+
+Agents don't need to see websites with markup and styling; anything other than plain Markdown is just wasted money spent on context tokens.
+
+I decided to make my Astro sites more accessible to LLMs by having them return Markdown versions of pages when the `Accept` header has `text/plain` or `text/markdown` preceding `text/html`. This was very heavily inspired by [this post on X from bunjavascript](https://x.com/bunjavascript/status/1971934734940098971).
+
+Hopefully this helps SEO too, since agents are a big chunk of my traffic. The Bun team reported a 10x token drop for Markdown and frontier labs pay per token, so cheaper pages should get scraped more, be more likely to end up in training data, and give me a little extra lift from assistants and search.
+
+> **Note:** You can check out the feature live by running `curl -H "Accept: text/markdown" https://www.skeptrune.com` or `curl -H "Accept: text/plain" https://www.skeptrune.com` in your terminal.
+
+## Static Site Generators are already halfway there
+
+Static site generators like Astro and Gatsby already generate a big folder of HTML files, typically in a `dist` or `public` folder through an `npm run build` command. The only thing missing is a way to convert those HTML files to markdown.
+
+It turns out there's a great CLI tool for this called [html-to-markdown](https://www.npmjs.com/package/@wcj/html-to-markdown-cli) that can be installed with `npm install -D @wcj/html-to-markdown-cli` and run during a build step using `npx`.
+
+Here's a quick Bash script an LLM wrote to convert all HTML files in `dist/html` to Markdown files in `dist/markdown`, preserving the directory structure:
+
+```bash
+# convert-to-markdown.sh
+mkdir -p dist/markdown
+
+find dist/html -type f -name "*.html" | while read -r file; do
+    relative_path="${file#dist/html/}"
+    dest_path="dist/markdown/${relative_path%.html}.md"
+    mkdir -p "$(dirname "$dest_path")"
+    npx @wcj/html-to-markdown-cli "$file" --stdout > "$dest_path"
+done
+```
+
+Once you have the conversion script in place, the next step is to make it run as a post-build action. Here's an example of how to modify your `package.json` scripts section:
+
+```json
+"scripts": {
+    "build": "astro build && yarn mv-html && yarn convert-to-markdown",
+    "mv-html": "mkdir -p dist/html && find dist -type f -name '*.html' -not -path 'dist/html/*' -exec sh -c 'for f; do dest=\"dist/html/${f#dist/}\"; mkdir -p \"$(dirname \"$dest\")\"; mv -f \"$f\" \"$dest\"; done' sh {} +",
+  "convert-to-markdown": "bash convert-to-markdown.sh"
+}
+```
+
+Moving all HTML files to `dist/html` first is only necessary if you're using Cloudflare Workers, which will serve existing static assets before falling back to your Worker. If you're using a traditional reverse proxy, you can skip that step and just convert directly from `dist` to `dist/markdown`.
+
+## Cloudflare Workers-specific configuration
+
+I pushed myself to go out of my comfort zone and learn Cloudflare Workers for this project since my company uses them extensively. If you're using a traditional reverse proxy like Nginx or Caddy, you can skip this section (and honestly, you'll have a much easier time).
+
+If you're coming from traditional reverse proxy servers, Cloudflare Workers force you into a different paradigm. What would normally be a simple Nginx or Caddy rule becomes custom `wrangler.jsonc` configuration, moving your entire site to a shadow directory so Cloudflare doesn't serve static assets by default, writing JavaScript to manually check headers and using `env.ASSETS.fetch` to serve files. SO MANY STEPS TO MAKE A SIMPLE FILE SERVER!
+
+This experience finally made Next.js 'middleware' click for me. It's not actually middleware in the traditional sense of a REST API; it's more like 'use this where you would normally have a real reverse proxy.' Both Cloudflare Workers and Next.js Middleware are essentially JavaScript-based reverse proxies that intercept requests before they hit your application.
+
+While I'd personally prefer Terraform with a hyperscaler or a VPS for a more traditional setup, new startups love this pattern, so it's worth understanding.
+
+Here's an example of a working `wrangler.jsonc` file to refer to a new worker script and also bind your build output directory as a static asset namespace:
+
+```jsonc
+{
+  "main": "worker.js",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  }
+}
+```
+
+Below is a minimal worker script that inspects the `Accept` header and serves markdown when requested, otherwise falls back to HTML:
+
+```javascript
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const acceptHeader = request.headers.get("accept") || "";
+    const acceptTypes = acceptHeader.split(",");
+
+    const plainIndex = acceptTypes.findIndex(
+      (t) => t.includes("text/plain") || t.includes("text/markdown")
+    );
+    const htmlIndex = acceptTypes.findIndex((t) => t.includes("text/html"));
+    const prefersMarkdown =
+      plainIndex !== -1 && (htmlIndex === -1 || plainIndex < htmlIndex);
+
+    const tryServeContent = async (format) => {
+      let contentType;
+      if (format === "markdown") {
+        if (url.pathname == "" || url.pathname == "/") {
+          const sitemapResponse = await env.ASSETS.fetch(
+            new Request(new URL("/sitemap-0.xml", request.url))
+          );
+          if (sitemapResponse.ok) {
+            const content = await sitemapResponse.text();
+            return new Response(content, {
+              headers: {
+                "Content-Type": "application/xml; charset=utf-8",
+                "Cache-Control": "public, max-age=3600",
+              },
+            });
+          }
+        }
+
+        contentType = "text/plain; charset=utf-8";
+        let distPath = `/markdown${url.pathname}`;
+
+        if (!distPath.endsWith(".md") && !distPath.endsWith("/")) {
+          distPath += "/index.md";
+        } else if (distPath.endsWith("/")) {
+          distPath += "index.md";
+        }
+
+        if (url.pathname === "/") {
+          distPath = "/markdown/index.md";
+        }
+
+        try {
+          const response = await env.ASSETS.fetch(
+            new Request(new URL(distPath, request.url))
+          );
+          if (response.ok) {
+            const content = await response.text();
+            return new Response(content, {
+              headers: {
+                "Content-Type": contentType,
+                "Cache-Control": "public, max-age=3600",
+              },
+            });
+          }
+        } catch (error) {
+          console.error(`Error fetching HTML file from ${distPath}:`, error);
+        }
+      } else {
+        contentType = "text/html; charset=utf-8";
+        let distPath = `/html${url.pathname}`;
+
+        if (!distPath.endsWith(".html") && !distPath.endsWith("/")) {
+          distPath += "/index.html";
+        } else if (distPath.endsWith("/")) {
+          distPath += "index.html";
+        }
+
+        // Handle root path
+        if (url.pathname === "/") {
+          distPath = "/html/index.html";
+        }
+
+        try {
+          const response = await env.ASSETS.fetch(
+            new Request(new URL(distPath, request.url))
+          );
+          if (response.ok) {
+            const content = await response.text();
+            return new Response(content, {
+              headers: {
+                "Content-Type": contentType,
+                "Cache-Control": "public, max-age=3600",
+              },
+            });
+          }
+        } catch (error) {
+          console.error(`Error fetching HTML file from ${distPath}:`, error);
+        }
+      }
+
+      return null;
+    };
+
+    if (prefersMarkdown) {
+      const markdownResponse = await tryServeContent("markdown");
+      if (markdownResponse) return markdownResponse;
+
+      const htmlResponse = await tryServeContent("html");
+      if (htmlResponse) return htmlResponse;
+    } else {
+      const htmlResponse = await tryServeContent("html");
+      if (htmlResponse) return htmlResponse;
+
+      const markdownResponse = await tryServeContent("markdown");
+      if (markdownResponse) return markdownResponse;
+    }
+
+    return await env.ASSETS.fetch(
+      new Request(new URL("/html/404.html", request.url))
+    );
+  },
+};
+```
+
+Pro tip: make the root path `/` serve your sitemap.xml instead of markdown content for your homepage such that an agent visiting your root URL can see all the links on your site.
+
+## Caddy configuration
+
+It's likely much easier to set this system up with a traditional reverse proxy file server like Caddy or Nginx. Here's a simple Caddyfile configuration that does the same thing:
+
+```caddyfile
+{
+    your-personal-domain.com {
+        root * /path/to/your/dist
+        file_server
+
+        @markdown {
+            header Accept *text/markdown*
+            header Accept *text/plain*
+            not header Accept *text/html*
+        }
+        handle @markdown {
+            rewrite * /markdown{path}/index.md
+            try_files {path} {path}.md /markdown/index.md
+            file_server
+        }
+
+        handle {
+            rewrite * /html{path}/index.html
+            try_files {path} {path}.html /html/index.html
+            file_server
+        }
+
+        handle_errors {
+            respond "404 Not Found" 404
+            try_files /html/404.html
+        }
+    }
+}
+```
+
+I will leave Nginx configuration as an exercise for the reader or perhaps the reader's LLM of choice.
+
+## Conclusion: A More Accessible Web for Agents
+
+By serving lean, semantic Markdown to LLM agents, you can achieve a 10x reduction in token usage while making your content more accessible and efficient for the AI systems that increasingly browse the web. This optimization isn't just about saving money; it's about GEO (Generative Engine Optimization) for a changed world where millions of users discover content through AI assistants.
+
+Astro's flexibility made this implementation surprisingly straightforward. It only took me a couple of hours to get both the personal blog you're reading now and [patron.com](https://www.patron.com) to support this feature.
+
+If you're ready to make your site agent-friendly, I encourage you to try this out. For a fun exercise, copy this article's URL and ask your favorite LLM to "Use the blog post to write a Cloudflare Worker for my own site." See how it does! You can also check out the source code for this feature at [github.com/skeptrunedev/personal-site](https://github.com/skeptrunedev/personal-site) to get started.
+
+I'm excited to see the impact of this change on my site's analytics and hope it inspires others. If you implement this on your own site, I'd love to hear about your experience! Connect with me on [X](https://x.com/skeptrune) or [LinkedIn](https://www.linkedin.com/in/khami/).

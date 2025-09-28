@@ -43,6 +43,10 @@ html {
     @apply text-base font-medium my-1;
   }
 
+  blockquote {
+    @apply border-l-4 border-amber-600 pl-4 py-2 my-4 bg-stone-100 rounded-r-md italic text-stone-700;
+  }
+
   button,
   input[type="button"],
   input[type="submit"],
@@ -136,6 +140,10 @@ html {
       date {
         @apply text-neutral-500 text-sm;
       }
+    }
+
+    blockquote {
+      @apply border-amber-500 bg-neutral-800 text-neutral-300;
     }
 
     article {
