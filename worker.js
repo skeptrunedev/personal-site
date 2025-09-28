@@ -3,8 +3,6 @@ export default {
     const url = new URL(request.url);
     const acceptHeader = request.headers.get("accept") || "";
 
-    console.log(`Worker called: ${url.pathname}, Accept: ${acceptHeader}`);
-
     const acceptTypes = acceptHeader.split(",");
 
     const plainIndex = acceptTypes.findIndex(
@@ -18,6 +16,21 @@ export default {
       let contentType;
 
       if (format === "markdown") {
+        if (url.pathname == "" || url.pathname == "/") {
+          const sitemapResponse = await env.ASSETS.fetch(
+            new Request(new URL("/sitemap-0.xml", request.url))
+          );
+          if (sitemapResponse.ok) {
+            const content = await sitemapResponse.text();
+            return new Response(content, {
+              headers: {
+                "Content-Type": "application/xml; charset=utf-8",
+                "Cache-Control": "public, max-age=3600",
+              },
+            });
+          }
+        }
+
         contentType = "text/plain; charset=utf-8";
         let distPath = `/markdown${url.pathname}`;
 
@@ -99,7 +112,7 @@ export default {
     }
 
     return await env.ASSETS.fetch(
-      new Request(new URL("/404.html", request.url))
+      new Request(new URL("/html/404.html", request.url))
     );
   },
 };
