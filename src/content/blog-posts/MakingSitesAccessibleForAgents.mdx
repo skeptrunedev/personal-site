@@ -54,6 +54,8 @@ Once you have the conversion script in place, the next step is to make it run as
 
 Moving all HTML files to `dist/html` first is only necessary if you're using Cloudflare Workers, which will serve existing static assets before falling back to your Worker. If you're using a traditional reverse proxy, you can skip that step and just convert directly from `dist` to `dist/markdown`.
 
+> **Note:** I learned after I finished the project that I could have added `run_worker_first = ["*"]` to my `wrangler.json` so I didn't have to move any files around. That field forces the worker to always run frst. Shoutout to the kind folks on reddit for telling me. 
+
 ## Cloudflare Workers-specific configuration
 
 I pushed myself to go out of my comfort zone and learn Cloudflare Workers for this project since my company uses them extensively. If you're using a traditional reverse proxy like Nginx or Caddy, you can skip this section (and honestly, you'll have a much easier time).
