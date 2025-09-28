@@ -5,34 +5,35 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && yarn copy-mdx",
+    "copy-mdx": "mkdir -p dist/content/blog-posts && cp src/content/blog-posts/*.mdx dist/content/blog-posts/",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/markdoc": "0.15.5",
-    "@astrojs/mdx": "4.3.4",
+    "@astrojs/markdoc": "0.15.7",
+    "@astrojs/mdx": "4.3.6",
     "@astrojs/rss": "4.0.12",
-    "@astrojs/sitemap": "3.5.0",
-    "@tailwindcss/vite": "4.1.11",
-    "astro": "5.13.2",
+    "@astrojs/sitemap": "3.6.0",
+    "@tailwindcss/vite": "4.1.13",
+    "astro": "5.14.1",
     "astro-icon": "1.1.5",
     "buffer": "6.0.3",
-    "markdown-it": "^14.1.0",
-    "plotly.js-dist": "^3.0.1",
+    "markdown-it": "14.1.0",
+    "plotly.js-dist": "3.1.0",
     "sanitize-html": "2.17.0",
-    "tailwindcss": "^4.1.4",
-    "three": "^0.179.1"
+    "tailwindcss": "4.1.13",
+    "three": "0.180.0"
   },
   "devDependencies": {
-    "@iconify-json/bi": "1.2.4",
-    "@iconify-json/simple-icons": "1.2.45",
-    "@types/d3": "^7.4.3",
+    "@iconify-json/bi": "1.2.6",
+    "@iconify-json/simple-icons": "1.2.53",
+    "@types/d3": "7.4.3",
     "@types/d3-sankey": "0.12.4",
-    "@types/plotly.js": "3.0.3",
-    "@types/three": "0.179.0",
+    "@types/plotly.js": "3.0.6",
+    "@types/three": "0.180.0",
     "vite-plugin-devtools-json": "1.0.0",
-    "wrangler": "^4.30.0"
+    "wrangler": "4.40.2"
   },
   "packageManager": "yarn@4.9.2"
 }

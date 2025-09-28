@@ -9,7 +9,7 @@ export async function getStaticPaths() {
 
   const catFreqs = allPosts.reduce(
     (acc, post) => {
-      post.data.categories.forEach((cat) => {
+      post.data.categories.forEach((cat: string | number) => {
         if (!acc[cat]) {
           acc[cat] = 0;
         }

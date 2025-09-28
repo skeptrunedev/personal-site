@@ -2,6 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "skeptrune-dot-com",
   "compatibility_date": "2025-03-25",
+  "main": "worker.js",
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page"
