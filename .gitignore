@@ -23,4 +23,7 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-data-analysis
+venv
+
+# LLM feature cache for notebooks
+llm_feature_cache/
