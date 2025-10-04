@@ -1,0 +1,66 @@
+# Nick Khami's Blog
+
+> Personal website and blog of Nick Khami, software engineer and entrepreneur
+
+## About
+
+Nick Khami is a software engineer and entrepreneur based in the United States. He's currently an Engineering Manager at Mintlify. Previously, he founded and served as CEO of Trieve, which built the world's best search API and was acquired by Mintlify in 2025. Before that, he worked at NelNet Payment Services and several startups including zeroDAO, Breezy, and Quai.
+
+Nick graduated from the University of Texas at Austin in 2022 with a B.S. in Computer Science, concentrating in machine learning. He participated in both Y-Combinator and FUTO programs. His undergraduate research focused on GANs (https://arxiv.org/abs/2108.11283).
+
+His interests include reading, riding motorcycles, right to repair, and open source software.
+
+## Contact
+
+- X/Twitter: https://x.com/skeptrune
+- LinkedIn: https://www.linkedin.com/in/khami/
+- GitHub: https://github.com/skeptrunedev
+
+## Featured Work
+
+- **Trieve**: All-in-one platform for search, recommendations, RAG, and analytics offered via API
+  https://github.com/devflowinc/trieve
+
+- **Jukebox**: Open source alternative to Spotify Collaborative Playlists. Turn your device into a jukebox where a group can queue music together
+  https://github.com/skeptrunedev/jukebox
+
+- **Astrobits**: Retro neo-brutalist 8/16-bit component library for Astro
+  https://github.com/patroninc/patron/tree/main/astrobits
+
+- **Patron**: Open source alternative to Patreon focused on serialized content
+  https://github.com/patroninc/patron
+
+## Featured Blog Posts
+
+- **Use the Accept Header to serve Markdown instead of HTML to LLMs** (2025-09-27)
+  Make your website accessible to LLM agents by serving plain Markdown when they request text/plain or text/markdown. Save tokens and improve agent experience with this simple Astro and Cloudflare Workers implementation.
+  https://www.skeptrune.com/posts/use-the-accept-header-to-serve-markdown-instead-of-html-to-llms/
+
+- **I couldn't submit a PR, so I got hired and fixed it myself** (2025-07-30)
+  After joining Mintlify (which acquired my previous company), I finally fixed a search bug that had bothered me for over a year as a user - the debounced search queries weren't being aborted, causing race conditions and poor search quality.
+  https://www.skeptrune.com/posts/doing-the-little-things/
+
+- **VPS Evangelism and Building LLM-over-DNS** (2025-08-06)
+  From PaaS hell to VPS enlightenment: Why the skill of confidently deploying anything to the internet is a hacker's superpower. Plus, a hands-on tutorial showing how to build your own LLM-over-DNS service in 30 minutes.
+  https://www.skeptrune.com/posts/llm-over-dns/
+
+## Topics
+
+This blog covers:
+- AI and LLMs
+- Web development (Astro, React, TypeScript)
+- Search and information retrieval
+- Open source software
+- Infrastructure and deployment (VPS, Cloudflare Workers)
+- Startup and entrepreneurship experiences
+- Software engineering best practices
+
+## Site Features
+
+This website serves markdown content to LLM agents when they request text/plain or text/markdown in the Accept header, reducing token usage by ~10x compared to HTML. Try it:
+
+```bash
+curl -H "Accept: text/markdown" https://www.skeptrune.com
+```
+
+Source code available at: https://github.com/skeptrunedev/personal-site
