@@ -1,0 +1,80 @@
+---
+title: "XGBoost Is All You Need"
+slug: xgboost-is-all-you-need
+summary: Why XGBoost remains the go-to algorithm for structured data problems, and how it consistently outperforms neural networks on tabular datasets.
+author: Nicholas Khami
+createdAt: 2025-10-12T00:00:00.000Z
+updatedAt: 2025-10-12T00:00:00.000Z
+coverImage:
+displayCoverImage: false
+isDraft: true
+isFeatured: false
+displaySummary: false
+categories:
+  - ai
+  - machine-learning
+---
+
+I believe the primary purpose of software to be automating tasks. LLMs made a huge leap for software because they are smart enough to automate many tasks which were previously impossible.
+
+I can tell frontier LLMs to test different search queries until it finds reliable sources about a given topic, read them, and then provide an informed opinion over and over again for a variety of topics. Humans are incapable of doing this at scale since you would need a group of them and each one would have their own process deviations and biases creating inconsistent results.
+
+I want to make sure you get that's also the point. You can spawn infinite instances of the same LLM and have it perform an analysis of hundreds or thousands of topics in parallel. It's incredible, this aspect of LLMs feels like as big of a leap as the steam engine or electricity.
+
+## People are using LLMs suboptimally
+
+I really enjoyed [Pete Koomen's Horseless Carriage essay](https://koomen.dev/essays/horseless-carriages/) from earlier this year which made the point that AI gimmicky and counter-productive when used to create or write things humans are already good at and works better as something like an intelligent email labeling system which can accurately categorize and prioritize the notes coming into his inbox.
+
+You should go read it, but for the sake of this post I will summarize that I'm going to disagree on the point that LLMs should label emails directly. I think classical decision tree algorithms like XGBoost are better suited for this task and LLMs should be used primarily for feature engineering.
+
+## Feature engineering
+
+Let's say your inbox starts off being represented as roughly this table:
+
+| Sender                   | Subject                                   |
+|--------------------------|-------------------------------------------|
+| Sarah from SaaS Solutions| Exclusive Offer for New Customers         |
+| Garry Tan                | reschedule                                |
+| Sumana                   | dinner tonight                            |
+| TechCrunch Weekly        | This Week in Tech: AI Developments and M...|
+| Gustaf Alströmer         | founder intro?                            |
+| Maya Rodriguez           | Technical co-founder?                     |
+| Mark at Enterprise Tools | Transform Your Workflow with Our Platfor...|
+| HackerNews Digest        | Top Stories: New Programming Languages o...|
+| Alex Chen                | advice on fundraising                     |
+| DevOps Pro Team          | Security Solutions for Growing Companies  |
+| The Verge Updates        | Latest Product Launches and Industry New...|
+| DataAnalytics Plus       | Special Pricing on Data Analytics Tools   |
+
+Our goal is to classify these emails into categories like "Personal", "Work", "Promotions", "Newsletters", and "Spam". We could do this by asking a LLM directly, but that's fraught with issues since LLMs are fundmentallly designed for generating text, not making decisions.00.000Z
+
+Instead, we can use the LLM to populate new columns in our table which are more structured and easier for a decision tree algorithm to reason about.
+
+| Prompt                                                                                                              | New Column Name      |
+|---------------------------------------------------------------------------------------------------------------------|----------------------|
+| Rate the urgency of this email from 1-10, where 1 is not urgent and 10 is extremely urgent                         | urgency_score        |
+| Is this email from a known personal contact? Answer 1 for yes, 0 for no                                            | is_personal_contact  |
+| Does this email require action or is it informational? Answer 1 for action required, 0 for informational           | requires_action      |
+| Rate how promotional/sales-oriented this email is from 1-10, where 1 is not promotional and 10 is pure sales pitch | promotional_score    |
+| Is this a newsletter or digest format? Answer 1 for yes, 0 for no                                                  | is_newsletter        |
+| Rate the formality/professionalism of this email from 1-10, where 1 is very casual and 10 is very formal           | formality_score      |
+
+After running the LLM on each combination of new column and email, we end up with a table that looks like this:
+
+| Sender                   | Subject                                    | urgency_score | is_personal_contact | requires_action | promotional_score | is_newsletter | formality_score |
+|--------------------------|--------------------------------------------|---------------|---------------------|-----------------|-------------------|---------------|-----------------|
+| Sarah from SaaS Solutions| Exclusive Offer for New Customers          | 3             | 0                   | 1               | 9                 | 0             | 8               |
+| Garry Tan                | reschedule                                 | 8             | 1                   | 1               | 2                 | 0             | 5               |
+| Sumana                   | dinner tonight                             | 7             | 1                   | 1               | 1                 | 0             | 3               |
+| TechCrunch Weekly        | This Week in Tech: AI Developments and M...| 4             | 0                   | 0               | 3                 | 1             | 7               |
+| Gustaf Alströmer         | founder intro?                             | 6             | 0                   | 1               | 2                 | 0             | 6               |
+| Maya Rodriguez           | Technical co-founder?                      | 7             | 0                   | 1               | 2                 | 0             | 6               |
+| Mark at Enterprise Tools | Transform Your Workflow with Our Platfor...| 3             | 0                   | 1               | 8                 | 0             | 8               |
+| HackerNews Digest        | Top Stories: New Programming Languages o...| 4             | 0                   | 0               | 3                 | 0             | 7               |
+| Alex Chen                | advice on fundraising                      | 6             | 0                   | 1               | 2                 | 0             | 5               |
+| DevOps Pro Team          | Security Solutions for Growing Companies   | 5             | 0                   | 1               | 7                 | 0             | 8               |
+| The Verge Updates        | Latest Product Launches and Industry New...| 4             | 0                   | 0               | 4                 | 1             | 7               |
+| DataAnalytics Plus       | Special Pricing on Data Analytics Tools    | 3             | 0                   | 1               | 9                 | 0             | 8               |
+
+Now we can use a decision tree algorithm like XGBoost to classify these emails based on the new structured features we've created. The model can learn patterns such as high urgency and personal contact indicating "Personal" emails, while high promotional scores, even when sent from a known contact, might indicate "Promotions" if the urgency is low.
+
