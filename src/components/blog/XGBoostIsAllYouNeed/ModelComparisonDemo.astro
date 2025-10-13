@@ -1,0 +1,190 @@
+---
+
+---
+
+<div id="model-comparison-chart" style="width: 100%; height: 350px;"></div>
+
+<style>
+  #model-comparison-chart {
+    margin: 20px 0;
+  }
+</style>
+
+<script>
+  // Ensure global is defined for Plotly.js
+  if (typeof global === "undefined") {
+    window.global = window;
+  }
+
+  // Import and setup Buffer polyfill
+  import { Buffer } from "buffer";
+  if (typeof window !== "undefined") {
+    window.Buffer = Buffer;
+  }
+
+  // @ts-ignore
+  import Plotly from "plotly.js-dist";
+
+  // Real Week 5 data from the NFL RB prediction model
+  // Based on evaluation of 73 RBs across all Week 5 games
+  const realMetrics = {
+    baseline: {
+      mae: 25.7,
+      rmse: 36.03,
+    },
+    enhanced: {
+      mae: 20.65,
+      rmse: 30.35,
+    },
+  };
+
+  // Top 15 RBs by actual rushing yards in Week 5
+  // const top15Players = {
+  //   labels: [
+  //     "HOU: Chubb",
+  //     "DET: Montgomery",
+  //     "LA: Williams",
+  //     "IND: Taylor",
+  //     "LV: Jeanty",
+  //     "TEN: Pollard",
+  //     "DEN: Dobbins",
+  //     "ARI: Demercado",
+  //     "SEA: Walker",
+  //     "CLE: Judkins",
+  //     "WAS: Croskey-Merritt",
+  //     "NYJ: Hall",
+  //     "DAL: Williams",
+  //     "NYG: Skattebo",
+  //     "CAR: Dowdle",
+  //   ],
+  //   actual: [49, 85, 65, 80, 67, 67, 75, 70, 85, 74, 60, 70, 90, 98, 135],
+  //   baseline: [35, 40, 45, 47, 103, 68, 21, 52, 54, 83, 19, 35, 65, 126, 45],
+  //   enhanced: [47, 107, 55, 104, 66, 60, 52, 52, 53, 75, 25, 36, 96, 70, 50],
+  // };
+
+  function createComparisonChart() {
+    // Subplot 1: Overall MAE and RMSE comparison
+    const metrics = ["MAE", "RMSE"];
+    const baselineValues = [
+      realMetrics.baseline.mae,
+      realMetrics.baseline.rmse,
+    ];
+    const enhancedValues = [
+      realMetrics.enhanced.mae,
+      realMetrics.enhanced.rmse,
+    ];
+
+    const metricsBaseline = {
+      x: metrics,
+      y: baselineValues,
+      name: "Baseline Model",
+      type: "bar",
+      marker: { color: "#4ECDC4" },
+      text: baselineValues.map((v) => v.toFixed(2)),
+      textposition: "auto",
+      xaxis: "x",
+      yaxis: "y",
+    };
+
+    const metricsEnhanced = {
+      x: metrics,
+      y: enhancedValues,
+      name: "Enhanced Model",
+      type: "bar",
+      marker: { color: "#FF6B6B" },
+      text: enhancedValues.map((v) => v.toFixed(2)),
+      textposition: "auto",
+      xaxis: "x",
+      yaxis: "y",
+    };
+
+    // Subplot 2: Top 15 RBs by actual rushing yards
+    // const playersActual = {
+    //   y: top15Players.labels,
+    //   x: top15Players.actual,
+    //   name: "Actual",
+    //   type: "bar",
+    //   orientation: "h",
+    //   marker: { color: "#2ECC71" },
+    //   text: top15Players.actual,
+    //   textposition: "auto",
+    //   xaxis: "x2",
+    //   yaxis: "y2",
+    // };
+
+    // const playersBaseline = {
+    //   y: top15Players.labels,
+    //   x: top15Players.baseline,
+    //   name: "Baseline Pred",
+    //   type: "bar",
+    //   orientation: "h",
+    //   marker: { color: "#4ECDC4" },
+    //   text: top15Players.baseline,
+    //   textposition: "auto",
+    //   xaxis: "x2",
+    //   yaxis: "y2",
+    // };
+
+    // const playersEnhanced = {
+    //   y: top15Players.labels,
+    //   x: top15Players.enhanced,
+    //   name: "Enhanced Pred",
+    //   type: "bar",
+    //   orientation: "h",
+    //   marker: { color: "#FF6B6B" },
+    //   text: top15Players.enhanced,
+    //   textposition: "auto",
+    //   xaxis: "x2",
+    //   yaxis: "y2",
+    // };
+
+    const layout = {
+      title: {
+        text: "Week 5 Complete Evaluation",
+        font: { size: 18, family: "Arial" },
+      },
+      height: 350,
+      showlegend: true,
+      barmode: "group",
+      legend: {
+        orientation: "h",
+        yanchor: "bottom",
+        y: 1.02,
+        xanchor: "center",
+        x: 0.5,
+      },
+      xaxis: {
+        title: "Yards",
+        domain: [0, 1],
+        anchor: "y",
+      },
+      yaxis: {
+        title: "Metric",
+        domain: [0, 1],
+        anchor: "x",
+      },
+      plot_bgcolor: "white",
+      paper_bgcolor: "#f8f9fa",
+    };
+
+    const config = {
+      responsive: true,
+      displayModeBar: false,
+    };
+
+    const data = [
+      metricsBaseline,
+      metricsEnhanced,
+      // playersActual,
+      // playersBaseline,
+      // playersEnhanced,
+    ];
+
+    Plotly.newPlot("model-comparison-chart", data, layout, config);
+  }
+
+  // Setup on various Astro lifecycle events
+  document.addEventListener("DOMContentLoaded", createComparisonChart);
+  document.addEventListener("astro:after-swap", createComparisonChart);
+  document.addEventListener("astro:page-load", createComparisonChart);
+</script>
