@@ -96,6 +96,22 @@ html {
     :not(pre) > code {
       @apply bg-stone-200 text-stone-800 px-1.5 py-0.5 rounded font-mono text-sm;
     }
+
+    table {
+      @apply w-full my-6 border-collapse;
+    }
+
+    th {
+      @apply bg-stone-200 text-stone-800 font-semibold px-4 py-2 text-left border-b-2 border-stone-400;
+    }
+
+    td {
+      @apply px-4 py-2 border-b border-stone-300;
+    }
+
+    tr:hover {
+      @apply bg-stone-100;
+    }
   }
 
   &[data-theme="dark"] {
@@ -149,6 +165,18 @@ html {
     article {
       :not(pre) > code {
         @apply bg-neutral-700 text-neutral-100 px-1.5 py-0.5 rounded font-mono text-sm;
+      }
+
+      th {
+        @apply bg-neutral-700 text-neutral-100 border-b-2 border-neutral-500;
+      }
+
+      td {
+        @apply border-b border-neutral-600;
+      }
+
+      tr:hover {
+        @apply bg-neutral-800;
       }
     }
   }

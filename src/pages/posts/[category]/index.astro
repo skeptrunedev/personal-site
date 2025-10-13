@@ -21,7 +21,6 @@ export async function getStaticPaths() {
   );
 
   return categories.map(({ id, data: category }) => {
-    console.log(`Generating path for category: ${category.name} (${id})`);
     return {
       params: { category: category.name },
       props: {

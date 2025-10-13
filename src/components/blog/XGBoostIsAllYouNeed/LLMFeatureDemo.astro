@@ -1,0 +1,492 @@
+---
+---
+
+<div class="llm-feature-demo">
+  <div class="demo-container">
+    <div class="input-section">
+      <label for="player-input">Enter Player Name:</label>
+      <input
+        type="text"
+        id="player-input"
+        placeholder="e.g., Derrick Henry"
+        value="Derrick Henry"
+      />
+      <button id="generate-btn" class="generate-button">
+        Generate Features
+      </button>
+    </div>
+
+    <div id="status" class="status-section hidden">
+      <div class="status-indicator">
+        <div class="spinner"></div>
+        <span id="status-text">Initializing...</span>
+      </div>
+    </div>
+
+    <div id="results" class="results-section hidden">
+      <h4>Generated Features:</h4>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-name">press_rating</span>
+          <span class="feature-value" id="press_rating">-</span>
+          <div class="feature-reasoning" id="press_rating_reasoning"></div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-name">injury_concern</span>
+          <span class="feature-value" id="injury_concern">-</span>
+          <div class="feature-reasoning" id="injury_concern_reasoning"></div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-name">opponent_defense_rating</span>
+          <span class="feature-value" id="opponent_defense_rating">-</span>
+          <div
+            class="feature-reasoning"
+            id="opponent_defense_rating_reasoning"
+          >
+          </div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-name">oline_health</span>
+          <span class="feature-value" id="oline_health">-</span>
+          <div class="feature-reasoning" id="oline_health_reasoning"></div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-name">vegas_sentiment</span>
+          <span class="feature-value" id="vegas_sentiment">-</span>
+          <div class="feature-reasoning" id="vegas_sentiment_reasoning"></div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-name">projected_workload_share</span>
+          <span class="feature-value" id="projected_workload_share">-</span>
+          <div
+            class="feature-reasoning"
+            id="projected_workload_share_reasoning"
+          >
+          </div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-name">game_script_prediction</span>
+          <span class="feature-value" id="game_script_prediction">-</span>
+          <div
+            class="feature-reasoning"
+            id="game_script_prediction_reasoning"
+          >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .llm-feature-demo {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+  }
+
+  .demo-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .input-section label {
+    font-weight: 600;
+    color: #495057;
+  }
+
+  .input-section input {
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+
+  .generate-button {
+    padding: 0.75rem 1.5rem;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .generate-button:hover {
+    background: #0056b3;
+  }
+
+  .generate-button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+  }
+
+  .status-section {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+  }
+
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .results-section {
+    margin-top: 1.5rem;
+  }
+
+  .results-section h4 {
+    margin-bottom: 1rem;
+    color: #212529;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .feature-card {
+    background: white;
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .feature-name {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+
+  .feature-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #007bff;
+  }
+
+  .feature-reasoning {
+    font-size: 0.85rem;
+    color: #6c757d;
+    line-height: 1.4;
+    min-height: 3rem;
+  }
+
+  .hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  // Mock data for different players
+  const mockPlayerData: Record<
+    string,
+    {
+      press_rating: {
+        value: number;
+        reasoning: string;
+      };
+      injury_concern: {
+        value: number;
+        reasoning: string;
+      };
+      opponent_defense_rating: {
+        value: number;
+        reasoning: string;
+      };
+      oline_health: {
+        value: number;
+        reasoning: string;
+      };
+      vegas_sentiment: {
+        value: number;
+        reasoning: string;
+      };
+      projected_workload_share: {
+        value: number;
+        reasoning: string;
+      };
+      game_script_prediction: {
+        value: number;
+        reasoning: string;
+      };
+    }
+  > = {
+    "derrick henry": {
+      press_rating: {
+        value: 8,
+        reasoning:
+          "Strong positive coverage following 150+ yard performance. Media praising his consistency and power running style.",
+      },
+      injury_concern: {
+        value: 2,
+        reasoning:
+          "No injury reports this week. Practiced fully all week. At age 30, monitoring workload but currently healthy.",
+      },
+      opponent_defense_rating: {
+        value: 7,
+        reasoning:
+          "Facing a defense ranked 24th against the run. Historically vulnerable to power backs.",
+      },
+      oline_health: {
+        value: 4,
+        reasoning:
+          "Starting LT questionable with ankle injury. Otherwise full offensive line intact and playing well.",
+      },
+      vegas_sentiment: {
+        value: 8,
+        reasoning:
+          "Vegas has team favored by 6.5 points. Over/under at 48.5 suggests high-scoring game with rushing opportunities.",
+      },
+      projected_workload_share: {
+        value: 0.75,
+        reasoning:
+          "Expected to handle 70-80% of carries based on recent usage. Backup RB2 limited to passing downs.",
+      },
+      game_script_prediction: {
+        value: 8,
+        reasoning:
+          "Team favored heavily, likely leading in 4th quarter. Perfect game script for establishing the run.",
+      },
+    },
+    "saquon barkley": {
+      press_rating: {
+        value: 9,
+        reasoning:
+          "Exceptional media buzz after 3 consecutive 100+ yard games. Analysts calling it a 'career year' and MVP-caliber performance.",
+      },
+      injury_concern: {
+        value: 1,
+        reasoning:
+          "Fully healthy, no injury concerns. Has looked explosive and passed all conditioning tests.",
+      },
+      opponent_defense_rating: {
+        value: 8,
+        reasoning:
+          "Opponent ranked 28th against the run with key DT out due to suspension. Defense struggling with gap integrity.",
+      },
+      oline_health: {
+        value: 5,
+        reasoning:
+          "Full offensive line healthy and playing at elite level. PFF grades top 5 in run blocking.",
+      },
+      vegas_sentiment: {
+        value: 9,
+        reasoning:
+          "Vegas giving team -8.5 spread, expecting dominant performance. Barkley's rushing prop at 95.5 yards.",
+      },
+      projected_workload_share: {
+        value: 0.8,
+        reasoning:
+          "Clear workhorse role with 80%+ of backfield touches. Coaches committed to riding the hot hand.",
+      },
+      game_script_prediction: {
+        value: 9,
+        reasoning:
+          "Large favorite against weak opponent. Game script perfect for heavy rushing attack and clock control.",
+      },
+    },
+    default: {
+      press_rating: {
+        value: 6,
+        reasoning:
+          "Mixed press coverage. Some positive game highlights but also concerns about consistency.",
+      },
+      injury_concern: {
+        value: 3,
+        reasoning:
+          "Minor injury designation (probable). Practiced in limited capacity mid-week but expected to play.",
+      },
+      opponent_defense_rating: {
+        value: 5,
+        reasoning:
+          "Facing average run defense ranked 15th. No major strengths or weaknesses against the run.",
+      },
+      oline_health: {
+        value: 3,
+        reasoning:
+          "Two starters listed on injury report. Backup RT likely to start. Some concern about run blocking.",
+      },
+      vegas_sentiment: {
+        value: 5,
+        reasoning:
+          "Pick'em game, Vegas sees even matchup. Over/under suggests moderate scoring pace.",
+      },
+      projected_workload_share: {
+        value: 0.6,
+        reasoning:
+          "Expected to split carries 60/40 with backup. Committee approach likely based on recent usage.",
+      },
+      game_script_prediction: {
+        value: 6,
+        reasoning:
+          "Close game expected. Game script could go either way depending on early momentum.",
+      },
+    },
+  };
+
+  // Simulate streaming text - build string then set once per iteration to avoid render issues
+  async function streamText(
+    element: HTMLElement,
+    text: string,
+    delayMs: number = 15
+  ): Promise<void> {
+    element.textContent = "";
+    let currentText = "";
+    const chars = Array.from(text); // Properly handle unicode characters
+
+    for (const char of chars) {
+      currentText += char;
+      element.textContent = currentText; // Set the full string each time
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+
+  // Generate a single feature with simulated delay
+  async function generateSingleFeature(
+    featureName: string,
+    featureData: { value: number; reasoning: string },
+    startDelay: number
+  ): Promise<void> {
+    // Wait for initial delay to simulate async processing
+    await new Promise((resolve) => setTimeout(resolve, startDelay));
+
+    // Update the value
+    const valueElement = document.getElementById(featureName)!;
+    valueElement.textContent =
+      featureName === "projected_workload_share"
+        ? featureData.value.toFixed(2)
+        : featureData.value.toString();
+
+    // Stream the reasoning text
+    const reasoningElement = document.getElementById(`${featureName}_reasoning`)!;
+    await streamText(reasoningElement, featureData.reasoning);
+  }
+
+  // Simulate LLM processing with parallel feature generation
+  async function generateFeatures(playerName: string): Promise<void> {
+    const statusSection = document.getElementById("status")!;
+    const statusText = document.getElementById("status-text")!;
+    const resultsSection = document.getElementById("results")!;
+    const generateBtn = document.getElementById(
+      "generate-btn"
+    )! as HTMLButtonElement;
+
+    // Reset UI
+    generateBtn.disabled = true;
+    statusSection.classList.remove("hidden");
+    resultsSection.classList.add("hidden");
+
+    // Clear previous results
+    const featureNames = [
+      "press_rating",
+      "injury_concern",
+      "opponent_defense_rating",
+      "oline_health",
+      "vegas_sentiment",
+      "projected_workload_share",
+      "game_script_prediction"
+    ];
+
+    featureNames.forEach(name => {
+      document.getElementById(name)!.textContent = "-";
+      document.getElementById(`${name}_reasoning`)!.textContent = "";
+    });
+
+    // Get player data (case insensitive)
+    const normalizedName = playerName.toLowerCase().trim();
+    const playerData =
+      mockPlayerData[normalizedName] || mockPlayerData["default"];
+
+    // Simulate initial search phase
+    statusText.textContent = `Searching for recent news about ${playerName}...`;
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    statusText.textContent = "Spawning parallel LLM instances to generate features...";
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
+    // Show results section
+    resultsSection.classList.remove("hidden");
+
+    statusText.textContent = "⚡ Processing 7 features in parallel...";
+
+    // Generate all features in parallel with staggered start times
+    await Promise.all([
+      generateSingleFeature("press_rating", playerData.press_rating, 200),
+      generateSingleFeature("injury_concern", playerData.injury_concern, 400),
+      generateSingleFeature("opponent_defense_rating", playerData.opponent_defense_rating, 100),
+      generateSingleFeature("oline_health", playerData.oline_health, 500),
+      generateSingleFeature("vegas_sentiment", playerData.vegas_sentiment, 300),
+      generateSingleFeature("projected_workload_share", playerData.projected_workload_share, 350),
+      generateSingleFeature("game_script_prediction", playerData.game_script_prediction, 250)
+    ]);
+
+    // Complete
+    statusText.textContent = "✓ All features generated successfully!";
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    statusSection.classList.add("hidden");
+    generateBtn.disabled = false;
+  }
+
+  function setupDemo() {
+    const generateBtn = document.getElementById("generate-btn")!;
+    const playerInput = document.getElementById(
+      "player-input"
+    )! as HTMLInputElement;
+
+    generateBtn.addEventListener("click", () => {
+      const playerName = playerInput.value.trim();
+      if (playerName) {
+        generateFeatures(playerName);
+      }
+    });
+
+    // Allow Enter key to trigger generation
+    playerInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        generateBtn.click();
+      }
+    });
+  }
+
+  // Setup on various Astro lifecycle events
+  document.addEventListener("DOMContentLoaded", setupDemo);
+  document.addEventListener("astro:after-swap", setupDemo);
+  document.addEventListener("astro:page-load", setupDemo);
+</script>

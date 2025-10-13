@@ -5,9 +5,8 @@ summary: Why XGBoost remains the go-to algorithm for structured data problems, a
 author: Nicholas Khami
 createdAt: 2025-10-12T00:00:00.000Z
 updatedAt: 2025-10-12T00:00:00.000Z
-coverImage:
 displayCoverImage: false
-isDraft: true
+isDraft: false
 isFeatured: false
 displaySummary: false
 categories:
@@ -15,66 +14,141 @@ categories:
   - machine-learning
 ---
 
-I believe the primary purpose of software to be automating tasks. LLMs made a huge leap for software because they are smart enough to automate many tasks which were previously impossible.
+import LLMFeatureDemo from "../../components/blog/XGBoostIsAllYouNeed/LLMFeatureDemo.astro";
+import ModelComparisonDemo from "../../components/blog/XGBoostIsAllYouNeed/ModelComparisonDemo.astro";
+import FeatureImportanceDemo from "../../components/blog/XGBoostIsAllYouNeed/FeatureImportanceDemo.astro";
 
-I can tell frontier LLMs to test different search queries until it finds reliable sources about a given topic, read them, and then provide an informed opinion over and over again for a variety of topics. Humans are incapable of doing this at scale since you would need a group of them and each one would have their own process deviations and biases creating inconsistent results.
+{/* <!-- TODO: Add a more concrete opening story - maybe a specific moment at the startup where you realized asking LLMs for direct answers was broken? --> */}
 
-I want to make sure you get that's also the point. You can spawn infinite instances of the same LLM and have it perform an analysis of hundreds or thousands of topics in parallel. It's incredible, this aspect of LLMs feels like as big of a leap as the steam engine or electricity.
+I spent two and a half years at a well-funded search startup building systems that used LLMs to answer questions via RAG (Retrieval Augmented Generation). We'd retrieve relevant documents, feed them to an LLM, and ask it to synthesize an answer.
 
-## People are using LLMs suboptimally
+I came out of that experience with one overwhelming conviction: we were doing it backwards.
 
-I really enjoyed [Pete Koomen's Horseless Carriage essay](https://koomen.dev/essays/horseless-carriages/) from earlier this year which made the point that AI gimmicky and counter-productive when used to create or write things humans are already good at and works better as something like an intelligent email labeling system which can accurately categorize and prioritize the notes coming into his inbox.
+The problem wasn't RAG. The problem was that we were asking LLMs "what's the answer?" instead of "what do we need to know?"
 
-You should go read it, but for the sake of this post I will summarize that I'm going to disagree on the point that LLMs should label emails directly. I think classical decision tree algorithms like XGBoost are better suited for this task and LLMs should be used primarily for feature engineering.
+Everyone building with LLMs makes this mistake. You have a prediction problem—will this customer churn? is this email urgent? how will this player perform?—and the obvious move is to ask the LLM directly. Give it all the context and let it think through the answer.
 
-## Feature engineering
+This feels like progress. It feels like you're using cutting-edge AI to solve hard problems.
 
-Let's say your inbox starts off being represented as roughly this table:
+But it's backwards. LLMs are brilliant at reading and synthesizing information at massive scale. You can spawn infinite instances in parallel to process thousands of documents, extract insights, and transform unstructured text into structured data. They're like having an army of research assistants who never sleep and work for pennies.
 
-| Sender                   | Subject                                   |
-|--------------------------|-------------------------------------------|
-| Sarah from SaaS Solutions| Exclusive Offer for New Customers         |
-| Garry Tan                | reschedule                                |
-| Sumana                   | dinner tonight                            |
-| TechCrunch Weekly        | This Week in Tech: AI Developments and M...|
-| Gustaf Alströmer         | founder intro?                            |
-| Maya Rodriguez           | Technical co-founder?                     |
-| Mark at Enterprise Tools | Transform Your Workflow with Our Platfor...|
-| HackerNews Digest        | Top Stories: New Programming Languages o...|
-| Alex Chen                | advice on fundraising                     |
-| DevOps Pro Team          | Security Solutions for Growing Companies  |
-| The Verge Updates        | Latest Product Launches and Industry New...|
-| DataAnalytics Plus       | Special Pricing on Data Analytics Tools   |
+They're surprisingly bad at making reliable predictions. They're text generators trained to sound plausible, not prediction engines optimized for numerical accuracy.
 
-Our goal is to classify these emails into categories like "Personal", "Work", "Promotions", "Newsletters", and "Spam". We could do this by asking a LLM directly, but that's fraught with issues since LLMs are fundmentallly designed for generating text, not making decisions.00.000Z
+The best ML systems use LLMs for what they're good at—turning messy context into clean features—and classical algorithms like XGBoost for what they're good at—finding patterns in those features and making predictions.
 
-Instead, we can use the LLM to populate new columns in our table which are more structured and easier for a decision tree algorithm to reason about.
+## A real example: Predicting NFL running back performance
 
-| Prompt                                                                                                              | New Column Name      |
-|---------------------------------------------------------------------------------------------------------------------|----------------------|
-| Rate the urgency of this email from 1-10, where 1 is not urgent and 10 is extremely urgent                         | urgency_score        |
-| Is this email from a known personal contact? Answer 1 for yes, 0 for no                                            | is_personal_contact  |
-| Does this email require action or is it informational? Answer 1 for action required, 0 for informational           | requires_action      |
-| Rate how promotional/sales-oriented this email is from 1-10, where 1 is not promotional and 10 is pure sales pitch | promotional_score    |
-| Is this a newsletter or digest format? Answer 1 for yes, 0 for no                                                  | is_newsletter        |
-| Rate the formality/professionalism of this email from 1-10, where 1 is very casual and 10 is very formal           | formality_score      |
+{/* <!-- TODO: Add personality - maybe joke about why you picked this problem, or a detail about trying the "ask LLM directly" approach first and failing? --> */}
 
-After running the LLM on each combination of new column and email, we end up with a table that looks like this:
+Forecasting how many rushing yards an NFL running back will gain in their next game is a perfect example of this architecture. It's influenced by historical statistics (previous yards, carries, opponent defense), qualitative factors (recent press coverage, injury concerns, offensive line health), and game context (Vegas betting lines, projected workload).
 
-| Sender                   | Subject                                    | urgency_score | is_personal_contact | requires_action | promotional_score | is_newsletter | formality_score |
-|--------------------------|--------------------------------------------|---------------|---------------------|-----------------|-------------------|---------------|-----------------|
-| Sarah from SaaS Solutions| Exclusive Offer for New Customers          | 3             | 0                   | 1               | 9                 | 0             | 8               |
-| Garry Tan                | reschedule                                 | 8             | 1                   | 1               | 2                 | 0             | 5               |
-| Sumana                   | dinner tonight                             | 7             | 1                   | 1               | 1                 | 0             | 3               |
-| TechCrunch Weekly        | This Week in Tech: AI Developments and M...| 4             | 0                   | 0               | 3                 | 1             | 7               |
-| Gustaf Alströmer         | founder intro?                             | 6             | 0                   | 1               | 2                 | 0             | 6               |
-| Maya Rodriguez           | Technical co-founder?                      | 7             | 0                   | 1               | 2                 | 0             | 6               |
-| Mark at Enterprise Tools | Transform Your Workflow with Our Platfor...| 3             | 0                   | 1               | 8                 | 0             | 8               |
-| HackerNews Digest        | Top Stories: New Programming Languages o...| 4             | 0                   | 0               | 3                 | 0             | 7               |
-| Alex Chen                | advice on fundraising                      | 6             | 0                   | 1               | 2                 | 0             | 5               |
-| DevOps Pro Team          | Security Solutions for Growing Companies   | 5             | 0                   | 1               | 7                 | 0             | 8               |
-| The Verge Updates        | Latest Product Launches and Industry New...| 4             | 0                   | 0               | 4                 | 1             | 7               |
-| DataAnalytics Plus       | Special Pricing on Data Analytics Tools    | 3             | 0                   | 1               | 9                 | 0             | 8               |
+### The wrong approach: Asking LLMs directly
 
-Now we can use a decision tree algorithm like XGBoost to classify these emails based on the new structured features we've created. The model can learn patterns such as high urgency and personal contact indicating "Personal" emails, while high promotional scores, even when sent from a known contact, might indicate "Promotions" if the urgency is low.
+{/* <!-- TODO: Add personality - show a real example of ChatGPT giving a plausible-sounding but wrong prediction? Make it funny? --> */}
+
+You could ask ChatGPT's Deep Research feature to predict every game in a week. It would use web search to gather context, think about each matchup, and give you predictions.
+
+This approach is fundamentally broken. It's unscalable (each prediction requires manual prompting and waiting), the output is unstructured (you'd need to manually parse each response and log it in a spreadsheet), it's unreliable (LLMs are trained to sound plausible, not to optimize for numerical accuracy), and you can't learn from it (each prediction is independent—there's no way to improve based on what worked).
+
+This is the "ask the LLM what's the answer" approach. It feels like you're doing AI, but you're really just creating an expensive, slow research assistant that makes gut-feel predictions.
+
+### The right approach: LLMs for feature engineering
+
+{/* <!-- TODO: Add personality - maybe contrast this with how a human would do feature engineering? Show the "aha" moment when you realized this approach? --> */}
+
+Instead of asking "How many yards will Derrick Henry rush for?", we ask the LLM to transform unstructured information into structured features. Search for recent press coverage and rate sentiment 1-10. Analyze injury reports and rate concern level 1-5. Evaluate opponent's run defense and rate weakness 1-10.
+
+This is scalable (run 100+ feature extractions in parallel), structured (everything becomes a number XGBoost can use), and improves over time (XGBoost learns which features actually matter).
+
+I started with basic statistical features from the NFL API: yards and carries from the previous week, 3-week rolling averages, that kind of thing. These are helpful, but they miss important context.
+
+So I had the LLM engineer seven qualitative features: press coverage sentiment, injury concerns, opponent defense weakness, offensive line health, Vegas sentiment, projected workload share, and game script favorability. An agent loop with web search processed context about each player and game to populate these features—searching for news in the week leading up to the game and rating each factor on a numerical scale.
+
+<LLMFeatureDemo />
+
+Once we run this process for every running back each week, we end up with a dataset that has both statistical and LLM-engineered qualitative features.
+
+## Training XGBoost
+
+{/* <!-- TODO: Add personality - what were you hoping for? What did you expect to happen? --> */}
+
+I split the data chronologically—early weeks for training, later weeks for testing—and trained two models. A baseline using only statistical features (previous yards, carries, rolling averages), and an enhanced model using both statistical and LLM-engineered features.
+
+## Results
+
+{/* <!-- TODO: Add personality - show your emotional reaction to seeing these numbers. Were you shocked? Skeptical? Did you run it again to make sure? --> */}
+
+<ModelComparisonDemo />
+
+```
+Baseline (Statistical Features Only):
+  Test RMSE: 33.82 yards
+  Test MAE: 24.98 yards
+  Test R²: -0.025
+
+Enhanced (Statistical + LLM Features):
+  Test RMSE: 26.18 yards
+  Test MAE: 20.40 yards
+  Test R²: 0.386
+
+RMSE Improvement: 22.6%
+```
+
+The LLM-enhanced model reduced prediction error by **22.6%**. The baseline model was actually worse than just predicting the average yards (R² of -0.025), while the enhanced model explained 38.6% of the variance.
+
+But that's not the interesting part. The interesting part is what XGBoost actually learned.
+
+## What XGBoost Actually Learned
+
+{/* <!-- TODO: Add personality - build up the surprise here. Maybe say "I looked at the feature importance rankings expecting to see..." --> */}
+
+<FeatureImportanceDemo />
+
+**Six of the top seven most important features are LLM-engineered.**
+
+The top feature is average carries over the last 3 weeks (statistical). The second most important feature is press coverage sentiment (LLM). Then game script prediction (LLM), Vegas sentiment (LLM), projected workload share (LLM), offensive line health (LLM), and injury concern (LLM).
+
+I didn't tell XGBoost that press sentiment matters more than injury concerns, or that game script prediction is more important than offensive line health. The model discovered these patterns on its own by analyzing which features actually correlated with rushing yards.
+
+The most predictive LLM feature, press coverage sentiment, captures momentum and narrative that doesn't show up in raw statistics. When a running back is getting positive press coverage, they tend to get more carries and perform better. XGBoost found this signal and learned to weight it heavily.
+
+This is the power of the hybrid approach: LLMs transform messy, unstructured context into clean features. XGBoost discovers which features actually matter. Neither could do this alone.
+
+## Why This Matters
+
+{/* <!-- TODO: Add personality - make the transition to "this is actually a bigger problem" more dramatic. Show frustration with the current state? --> */}
+
+This isn't just about NFL predictions. Email prioritization, Slack message routing, pull request quality assessment, prediction market opportunities, customer support triage—every one of these problems has the same structure. Some structured data combined with unstructured context that needs to be transformed into a prediction.
+
+The architecture is identical every time: use LLMs in parallel to extract features from unstructured data, combine with structured features, train XGBoost to find patterns, deploy and iterate.
+
+Setting this up from scratch takes way too much time. I want tools that make this trivial—upload your data, describe what you want to predict, and get back a trained model with a deployment-ready API.
+
+## Why These Tools Don't Exist
+
+{/* <!-- TODO: Add personality - make this section angrier? More pointed? This is your villain reveal. --> */}
+
+The tools I'm describing could exist today. The technology is mature and proven. So why hasn't anyone built them?
+
+Random forests don't raise $1B rounds.
+
+Founders are building pure-LLM systems because that's what gets funded. VCs get excited about foundation models and AGI, not about elegant hybrid architectures that combine 2019-era XGBoost with LLM feature engineering.
+
+This is the real problem with modern AI development. Not that the technology isn't good enough—it's that incentives are backwards. VC-led engineering is bad engineering. The best technical solutions rarely align with what makes a compelling pitch deck.
+
+Everyone's building the wrong thing because they're building what raises money instead of what solves problems.
+
+If you're a builder who cares more about solving real problems than raising huge rounds, there's a massive opportunity here. Build the boring, practical tools that let people deploy these hybrid systems in minutes instead of weeks. Build what actually works instead of what sounds impressive.
+
+## The Right Tool for the Right Job
+
+{/* <!-- TODO: Add personality - end on a more concrete note? What are YOU going to build next? What do you wish existed? --> */}
+
+The future of ML isn't pure LLMs or pure classical ML—it's knowing which tool to use for which job.
+
+Don't ask LLMs "what's the answer?" Ask them "what do we need to know?" Then let XGBoost find the patterns in those answers.
+
+---
+
+Want to see the full implementation? Check out the [complete Jupyter notebook walkthrough](/posts/xgboost-nfl-notebook) with all the code, data processing steps, and visualizations.
 

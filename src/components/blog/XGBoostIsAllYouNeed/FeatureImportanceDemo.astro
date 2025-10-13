@@ -1,0 +1,128 @@
+---
+
+---
+
+<div id="feature-importance-chart" style="width: 100%; height: 550px;"></div>
+
+<style>
+  #feature-importance-chart {
+    margin: 20px 0;
+  }
+</style>
+
+<script>
+  // Ensure global is defined for Plotly.js
+  if (typeof global === "undefined") {
+    window.global = window;
+  }
+
+  // Import and setup Buffer polyfill
+  import { Buffer } from "buffer";
+  if (typeof window !== "undefined") {
+    window.Buffer = Buffer;
+  }
+
+  // @ts-ignore
+  import Plotly from "plotly.js-dist";
+
+  // Feature importance data
+  const featureData = [
+    { feature: "avg_carries_3w", importance: 0.262, type: "Statistical" },
+    { feature: "press_rating", importance: 0.192, type: "LLM" },
+    { feature: "game_script_prediction", importance: 0.084, type: "LLM" },
+    { feature: "vegas_sentiment", importance: 0.07, type: "LLM" },
+    { feature: "projected_workload_share", importance: 0.069, type: "LLM" },
+    { feature: "oline_health", importance: 0.055, type: "LLM" },
+    { feature: "injury_concern", importance: 0.055, type: "LLM" },
+    { feature: "prev_rushing_yards", importance: 0.048, type: "Statistical" },
+    { feature: "avg_rushing_yards_3w", importance: 0.042, type: "Statistical" },
+    { feature: "opponent_defense_rating", importance: 0.038, type: "LLM" },
+    { feature: "prev_carries", importance: 0.035, type: "Statistical" },
+  ];
+
+  function createFeatureImportanceChart() {
+    // Sort by importance (already sorted, but just to be sure)
+    const sortedData = [...featureData].sort(
+      (a, b) => a.importance - b.importance
+    );
+
+    // Create colors based on type
+    const colors = sortedData.map((item) =>
+      item.type === "LLM" ? "rgba(50, 171, 96, 0.7)" : "rgba(255, 127, 80, 0.7)"
+    );
+
+    const trace = {
+      y: sortedData.map((item) => item.feature.replace(/_/g, " ")),
+      x: sortedData.map((item) => item.importance),
+      type: "bar",
+      orientation: "h",
+      marker: {
+        color: colors,
+        line: {
+          color: sortedData.map((item) =>
+            item.type === "LLM" ? "rgb(50, 171, 96)" : "rgb(255, 127, 80)"
+          ),
+          width: 1.5,
+        },
+      },
+      text: sortedData.map((item) => `${(item.importance * 100).toFixed(1)}%`),
+      textposition: "outside",
+      hovertemplate:
+        "<b>%{y}</b><br>Importance: %{x:.3f}<br>Type: %{customdata}<extra></extra>",
+      customdata: sortedData.map((item) => item.type),
+    };
+
+    const layout = {
+      title: {
+        text: "Feature Importance: LLM vs Statistical Features",
+        font: { size: 16, family: "Arial" },
+      },
+      xaxis: {
+        title: "Importance Score",
+        showgrid: true,
+        gridcolor: "#eee",
+        range: [0, Math.max(...sortedData.map((d) => d.importance)) * 1.15],
+      },
+      yaxis: {
+        title: "",
+        tickfont: { size: 11 },
+        automargin: true,
+      },
+      height: 550,
+      margin: { l: 180, r: 80, t: 60, b: 60 },
+      plot_bgcolor: "white",
+      paper_bgcolor: "#f8f9fa",
+      annotations: [
+        {
+          x: 0.95,
+          y: 0.95,
+          xref: "paper",
+          yref: "paper",
+          text: "<b>Legend:</b><br>🟢 LLM Features<br>🟠 Statistical Features",
+          showarrow: false,
+          xanchor: "right",
+          yanchor: "top",
+          bgcolor: "rgba(255, 255, 255, 0.8)",
+          bordercolor: "#ddd",
+          borderwidth: 1,
+          borderpad: 8,
+          font: { size: 11 },
+        },
+      ],
+    };
+
+    const config = {
+      responsive: true,
+      displayModeBar: true,
+      displaylogo: false,
+      modeBarButtonsToRemove: ["lasso2d", "select2d"],
+    };
+
+    Plotly.newPlot("feature-importance-chart", [trace], layout, config);
+  }
+
+  // Setup on various Astro lifecycle events
+  document.addEventListener("DOMContentLoaded", createFeatureImportanceChart);
+  document.addEventListener("astro:after-swap", createFeatureImportanceChart);
+  document.addEventListener("astro:page-load", createFeatureImportanceChart);
+</script>
