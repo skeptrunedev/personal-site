@@ -5,6 +5,7 @@ summary: Why XGBoost remains the go-to algorithm for structured data problems, a
 author: Nicholas Khami
 createdAt: 2025-10-12T00:00:00.000Z
 updatedAt: 2025-10-12T00:00:00.000Z
+coverImage: src/assets/images/blog-posts/XGBoostIsAllYouNeed/cover.jpeg
 displayCoverImage: false
 isDraft: true
 isFeatured: false
@@ -22,19 +23,9 @@ import FeatureImportanceDemo from "../../components/blog/XGBoostIsAllYouNeed/Fea
 
 I spent two and a half years at a well-funded search startup building systems that used LLMs to answer questions via RAG (Retrieval Augmented Generation). We'd retrieve relevant documents, feed them to an LLM, and ask it to synthesize an answer.
 
-I came out of that experience with one overwhelming conviction: we were doing it backwards.
+I came out of that experience with one overwhelming conviction: we were doing it backwards. The problem was that we were asking LLMs "what's the answer?" instead of "what do we need to know?"
 
-The problem wasn't RAG. The problem was that we were asking LLMs "what's the answer?" instead of "what do we need to know?"
-
-Everyone building with LLMs makes this mistake. You have a prediction problem—will this customer churn? is this email urgent? how will this player perform?—and the obvious move is to ask the LLM directly. Give it all the context and let it think through the answer.
-
-This feels like progress. It feels like you're using cutting-edge AI to solve hard problems.
-
-But it's backwards. LLMs are brilliant at reading and synthesizing information at massive scale. You can spawn infinite instances in parallel to process thousands of documents, extract insights, and transform unstructured text into structured data. They're like having an army of research assistants who never sleep and work for pennies.
-
-They're surprisingly bad at making reliable predictions. They're text generators trained to sound plausible, not prediction engines optimized for numerical accuracy.
-
-The best ML systems use LLMs for what they're good at—turning messy context into clean features—and classical algorithms like XGBoost for what they're good at—finding patterns in those features and making predictions.
+LLMs are brilliant at reading and synthesizing information at massive scale. You can spawn infinite instances in parallel to process thousands of documents, extract insights, and transform unstructured text into structured data. They're like having an army of research assistants who never sleep and work for pennies.
 
 ## A real example: Predicting NFL running back performance
 
@@ -136,5 +127,5 @@ Don't ask LLMs "what's the answer?" Ask them "what do we need to know?" Then let
 
 ---
 
-Want to see the full implementation? Check out the [complete Jupyter notebook walkthrough](/posts/xgboost-nfl-notebook) with all the code, data processing steps, and visualizations.
+Want to see the full implementation? Check out the [complete Jupyter notebook walkthrough](https://github.com/skeptrunedev/personal-site/blob/main/data-analysis/xgboost-nfl-rb.ipynb) with all the code, data processing steps, training, and visualizations.
 
