@@ -47,7 +47,7 @@ For most multi-tenant systems, this is exactly what you want. One certificate, p
 
 To get a wildcard certificate from Let's Encrypt (or any ACME-compliant CA), you must use the DNS-01 challenge type. The more common HTTP-01 challenge doesn't work for wildcards.
 
-With HTTP-01, the CA verifies domain ownership by requesting a specific file at `http://your-domain/.well-known/acme-challenge/token`. But for `*.foo.com`, there's no single HTTP endpoint to verify—the wildcard represents infinite possible subdomains.
+With HTTP-01, the CA verifies domain ownership by requesting a specific file at `http://your-domain/.well-known/acme-challenge/token`. But for `*.foo.com`, there's no single HTTP endpoint to verify; the wildcard represents infinite possible subdomains.
 
 DNS-01 solves this by verifying ownership at the DNS level. Your ACME client requests a wildcard certificate for `*.foo.com`, Let's Encrypt generates a challenge token, and you create a TXT record at `_acme-challenge.foo.com` with that token as the value. 
 
@@ -165,7 +165,7 @@ Content-Type: application/json
 }
 ```
 
-This creates the challenge TXT record with a short TTL (2 minutes). AWS Route53 uses `ChangeResourceRecordSets`, GCP uses `managedZones.changes.create`, Azure uses their DNS REST API—different endpoints, same result.
+This creates the challenge TXT record with a short TTL (2 minutes). AWS Route53 uses `ChangeResourceRecordSets`, GCP uses `managedZones.changes.create`, Azure uses their DNS REST API. Different endpoints, same result.
 
 **7. DNS Propagation Wait**
 
