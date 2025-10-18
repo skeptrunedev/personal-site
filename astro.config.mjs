@@ -19,7 +19,14 @@ export default defineConfig({
   image: {
     domains: ["127.0.0.1"],
   },
-  integrations: [markdoc(), sitemap(), icon(), mdx()],
+  integrations: [
+    markdoc(),
+    sitemap({
+      filter: (page) => page.includes("ai-horseless-carriages"),
+    }),
+    icon(),
+    mdx(),
+  ],
   vite: {
     resolve: {
       alias: {
