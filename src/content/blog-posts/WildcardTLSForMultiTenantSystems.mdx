@@ -1,0 +1,469 @@
+---
+title: "Multi-Tenant SaaS's Wildcard TLS: An Overview of DNS-01 Challenges"
+slug: wildcard-tls-for-multi-tenant-systems
+summary: How to provision and manage wildcard TLS certificates for multi-tenant systems with tenant-specific subdomains, solving the scaling challenges of per-tenant certificates.
+author: Nicholas Khami
+createdAt: 2025-10-17T00:00:00.000Z
+updatedAt: 2025-10-17T00:00:00.000Z
+isDraft: false
+isFeatured: true
+displaySummary: false
+coverImage: "@/assets/images/blog-posts/wildcard-tls-for-multi-tenant-systems/dns-meme-canonical.jpg"
+categories:
+  - infrastructure
+  - security
+---
+
+AI app builders are everywhere now. You enter a prompt, get a deployed product on `your-app.builder.com`, and ship. Replit, Bolt, Lovable, v0, and dozens of other similar platforms launched in the past few months, and they all need instant subdomain provisioning with HTTPS for every user.
+
+This pattern isn't new. Multi-tenant SaaS has used `tenant-id.foo.com` subdomains forever. But the explosion of AI builders that spin up hundreds of new subdomains daily makes the certificate management problem more visible. You can't provision individual certificates for every generated app, you need wildcard certificates.
+
+I'd never set this up before, but at [Mintlify](https://www.mintlify.com) we had an internal hackathon today and I built my own AI app builder. That meant I finally had a good excuse to figure out how wildcard TLS actually works. I'm sharing what I learned so you can implement it too.
+
+## The Problem: Per-Tenant Certificates Don't Scale
+
+If you provision individual certificates for each tenant, you're running ACME challenges for every new tenant signup, managing certificate renewals for potentially tens of thousands of certificates, and hitting rate limits from Let's Encrypt (50 certificates per registered domain per week). You need a better approach.
+
+## Wildcard Certificates: One Cert, Infinite Tenants
+
+A wildcard certificate for `*.foo.com` covers all first-level subdomains. This means any subdomain directly under your base domain gets automatic TLS coverage with a single certificate.
+
+```
+tenant-a.foo.com     ✓
+tenant-b.foo.com     ✓
+tenant-xyz.foo.com   ✓
+```
+
+The wildcard certificate doesn't extend to the apex domain or nested subdomains, though. Here's what's explicitly excluded from coverage.
+
+```
+foo.com                      ✗ (apex domain)
+api.tenant-a.foo.com         ✗ (nested subdomain)
+```
+
+For most multi-tenant systems, this is exactly what you want. One certificate, provisioned once, renewed automatically, and it works for every tenant you'll ever onboard.
+
+## Why You Must Use DNS-01 Challenges
+
+To get a wildcard certificate from Let's Encrypt (or any ACME-compliant CA), you must use the DNS-01 challenge type. The more common HTTP-01 challenge doesn't work for wildcards.
+
+With HTTP-01, the CA verifies domain ownership by requesting a specific file at `http://your-domain/.well-known/acme-challenge/token`. But for `*.foo.com`, there's no single HTTP endpoint to verify—the wildcard represents infinite possible subdomains.
+
+DNS-01 solves this by verifying ownership at the DNS level. Your ACME client requests a wildcard certificate for `*.foo.com`, Let's Encrypt generates a challenge token, and you create a TXT record at `_acme-challenge.foo.com` with that token as the value. 
+
+Let's Encrypt queries public DNS for that TXT record, and if the record exists with the correct value, Let's Encrypt knows you control the domain and issues the certificate. This means your certificate provisioning system needs _programmatic access_ to your DNS provider's API to create and delete TXT records on demand.
+
+## How DNS-01 Automation Works
+
+The key to wildcard certificates is automating the DNS-01 challenge. This requires your web server or load balancer to have API access to your DNS provider. When Let's Encrypt needs to verify domain ownership, your system creates a temporary TXT record, waits for DNS propagation, completes the challenge, and cleans up the record.
+
+I'm using Caddy as my reverse proxy with Cloudflare as my DNS provider, but the architecture is the same regardless of your stack. Nginx with cert-manager on Kubernetes works the same way. HAProxy with acme.sh works the same way. The pattern is universally `web server + DNS provider plugin + ACME client = automated wildcard certificates`.
+
+### The Architecture (Cloudflare Example)
+
+The system has three layers. Caddy is the web server that needs TLS certificates. The `caddy-dns/cloudflare` module is a thin adapter (only ~120 lines of Go) that sits between Caddy and the actual DNS API client. The `libdns/cloudflare` package handles the real work of talking to Cloudflare's API. 
+
+Caddy handles the web server and ACME logic, `certmagic` handles certificate management and renewal, `libdns/cloudflare` handles DNS API calls, and the plugin just connects them together.
+
+This same pattern exists for every major DNS provider. There's `caddy-dns/route53` for AWS, `caddy-dns/googleclouddns` for GCP, `caddy-dns/azure` for Azure, and plugins for dozens of other providers. The code structure is nearly identical, you just swap the API client.
+
+### Building Caddy with DNS Provider Support
+
+Standard Caddy doesn't include DNS provider modules. You need to build a custom binary with the plugin compiled in. For Cloudflare we add some go modules and a community plugin.
+
+```bash
+# Install xcaddy (Caddy's build tool)
+go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+
+# Build Caddy with the Cloudflare DNS plugin
+xcaddy build --with github.com/caddy-dns/cloudflare
+```
+
+This uses Caddy's module system to compile the plugin into a single binary. The result is a `caddy` executable that includes the DNS provider integration.
+
+For other providers, just swap the module name `--with github.com/caddy-dns/route53` for AWS, `--with github.com/caddy-dns/googleclouddns` for GCP, `--with github.com/caddy-dns/azure` for Azure. You can even include multiple providers if you manage domains across different DNS platforms.
+
+### Configuring Your Caddyfile
+
+Once you've built Caddy with the DNS provider plugin, the actual configuration is remarkably simple. Here's the complete configuration for wildcard TLS with automatic provisioning and renewal.
+
+```caddyfile
+*.foo.com {
+    tls {
+        dns cloudflare {env.CF_API_TOKEN}
+    }
+
+    # Your reverse proxy config
+    reverse_proxy localhost:8000
+}
+```
+
+
+Three lines of TLS configuration, and you get automatic wildcard certificate provisioning, automatic renewal 30 days before expiration, DNS-01 challenges handled transparently, and zero maintenance.
+
+### Getting DNS Provider Credentials
+
+Your web server needs API credentials to manage DNS records. The specific permissions required are consistent across providers. You need read access to list zones/domains, and write access to create and delete TXT records.
+
+For Cloudflare, create an API token at `https://dash.cloudflare.com/profile/api-tokens` with `Zone.Zone:Read` and `Zone.DNS:Edit` permissions. For AWS Route53, create an IAM user or role with `route53:ListHostedZones`, `route53:GetChange`, and `route53:ChangeResourceRecordSets` permissions. For GCP Cloud DNS, create a service account with the `dns.admin` role scoped to your DNS zone.
+
+The key is following the principle of least privilege, grant only the permissions needed for DNS challenge automation, nothing more.
+
+```bash
+export CF_API_TOKEN="your_token_here"
+```
+
+The `{env.CF_API_TOKEN}` placeholder in the Caddyfile will be replaced with this value when Caddy starts.
+
+### What Happens Under the Hood
+
+When you start Caddy, here's the complete flow.
+
+**1. Configuration Parsing**
+
+Caddy reads your Caddyfile and encounters the `dns cloudflare` directive. The plugin's `UnmarshalCaddyfile()` function extracts the token from `{env.CF_API_TOKEN}`.
+
+**2. Token Validation**
+
+The plugin validates the token format with a regex: `^[A-Za-z0-9_-]{35,50}$`. This catches common mistakes like wrapping the token in quotes or braces, which would cause cryptic API errors later.
+
+**3. Module Provisioning**
+
+Caddy calls the plugin's `Provision()` function, which replaces environment variable placeholders with actual values and performs final validation.
+
+**4. Certificate Check**
+
+Caddy checks its certificate cache (default `~/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/`) to see if a valid certificate for `*.foo.com` already exists. If so, it loads it and you're done.
+
+**5. ACME Challenge Request**
+
+If no valid certificate exists, Caddy's ACME client requests a certificate from Let's Encrypt. Let's Encrypt responds with a DNS-01 challenge of "Prove you control `foo.com` by creating a TXT record at `_acme-challenge.foo.com` with value `xyz123_random_token`."
+
+**6. DNS Record Creation**
+
+Here's where the magic happens. The plugin calls your DNS provider's API to create the challenge record. The specifics vary by provider, but the pattern is universally to find the zone ID, create a TXT record, and return success.
+
+The Cloudflare implementation illustrates this pattern clearly. The `libdns/cloudflare` client makes two API requests. First, it queries for the zone ID.
+
+```http
+GET https://api.cloudflare.com/client/v4/zones?name=foo.com
+Authorization: Bearer your_token_here
+```
+
+Once the zone ID is retrieved, the client creates the TXT record with the challenge token.
+
+```http
+POST https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records
+Authorization: Bearer your_token_here
+Content-Type: application/json
+
+{
+  "type": "TXT",
+  "name": "_acme-challenge.foo.com",
+  "content": "xyz123_random_token",
+  "ttl": 120
+}
+```
+
+This creates the challenge TXT record with a short TTL (2 minutes). AWS Route53 uses `ChangeResourceRecordSets`, GCP uses `managedZones.changes.create`, Azure uses their DNS REST API—different endpoints, same result.
+
+**7. DNS Propagation Wait**
+
+Caddy polls public DNS servers to verify the TXT record has propagated. By default, it uses your system's DNS resolver, but you can configure a custom resolver.
+
+```caddyfile
+*.foo.com {
+    tls {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1
+    }
+}
+```
+
+Using your DNS provider's public resolver (1.1.1.1 for Cloudflare, 8.8.8.8 for Google, 1.0.0.1 for general use) is often faster because DNS records propagate to the provider's own resolvers first. Caddy makes repeated queries until the record returns the expected value, then proceeds. This step is critical—if DNS propagation is incomplete when Let's Encrypt checks, the challenge fails.
+
+**8. Challenge Completion**
+
+Caddy tells Let's Encrypt "The TXT record is ready, check it." Let's Encrypt queries multiple DNS servers worldwide to verify the record exists. Once verified, Let's Encrypt issues the wildcard certificate.
+
+**9. Cleanup**
+
+Once the certificate is issued, the challenge TXT record is no longer needed. The plugin automatically deletes the temporary TXT record to keep your DNS zone clean.
+
+```http
+DELETE https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records/{record_id}
+Authorization: Bearer your_token_here
+```
+
+**10. Certificate Storage**
+
+Caddy stores the certificate chain and private key in its certificate cache. The certificate is now ready to use for all `*.foo.com` traffic.
+
+**11. Automatic Renewal**
+
+Caddy automatically renews certificates 30 days before expiration. The entire DNS-01 challenge flow repeats automatically—create TXT record, wait for propagation, complete challenge, and finally delete TXT record. All with zero human intervention.
+
+## The Code: How the Plugin Works
+
+The entire plugin is just ~120 lines of Go. Let's look at the key parts.
+
+### Module Registration
+
+The first step is registering the plugin with Caddy's module system so it can be discovered and loaded at runtime. Here's how the Cloudflare provider registers itself.
+
+```go
+type Provider struct{ *cloudflare.Provider }
+
+func init() {
+    caddy.RegisterModule(Provider{})
+}
+
+func (Provider) CaddyModule() caddy.ModuleInfo {
+    return caddy.ModuleInfo{
+        ID:  "dns.providers.cloudflare",
+        New: func() caddy.Module { return &Provider{new(cloudflare.Provider)} },
+    }
+}
+```
+
+The plugin wraps `github.com/libdns/cloudflare` and registers itself as a Caddy module with the ID `dns.providers.cloudflare`. When you write `dns cloudflare` in your Caddyfile, Caddy loads this module.
+
+### Caddyfile Parsing
+
+The parsing logic handles both inline and block configuration syntaxes, giving you flexibility in how you structure your Caddyfile. Here's how it works.
+
+```go
+func (p *Provider) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
+    d.Next() // consume directive name
+
+    if d.NextArg() {
+        // Single token syntax: cloudflare {env.CF_API_TOKEN}
+        p.Provider.APIToken = d.Val()
+    } else {
+        // Block syntax: cloudflare { api_token ... }
+        for nesting := d.Nesting(); d.NextBlock(nesting); {
+            switch d.Val() {
+            case "api_token":
+                if d.NextArg() {
+                    p.Provider.APIToken = d.Val()
+                }
+            case "zone_token":
+                if d.NextArg() {
+                    p.Provider.ZoneToken = d.Val()
+                }
+            }
+        }
+    }
+
+    if p.Provider.APIToken == "" {
+        return d.Err("missing API token")
+    }
+    return nil
+}
+```
+
+This implementation supports both inline syntax for simple cases and block syntax when you need multiple configuration options. Here are the two supported formats.
+
+```caddyfile
+# Inline syntax (recommended)
+dns cloudflare {env.CF_API_TOKEN}
+
+# Block syntax (for dual tokens)
+dns cloudflare {
+    api_token {env.CF_API_TOKEN}
+}
+```
+
+### Token Validation
+
+Before making any API calls, the plugin validates that the token format is correct. This catches configuration errors early with clear error messages. Here's the validation logic.
+
+```go
+var cloudflareTokenRegexp = regexp.MustCompile(`^[A-Za-z0-9_-]{35,50}$`)
+
+func (p *Provider) Provision(ctx caddy.Context) error {
+    // Replace placeholders like {env.CF_API_TOKEN} with actual values
+    p.Provider.APIToken = caddy.NewReplacer().ReplaceAll(p.Provider.APIToken, "")
+
+    if !cloudflareTokenRegexp.MatchString(p.Provider.APIToken) {
+        return fmt.Errorf("API token '%s' appears invalid", p.Provider.APIToken)
+    }
+    return nil
+}
+```
+
+This validates the token format before attempting any API calls. Cloudflare tokens are always 35-50 characters of alphanumerics, dashes, or underscores. If you accidentally wrap the token in quotes or the environment variable is unset, this catches it immediately with a clear error message instead of a cryptic "Invalid request headers" from Cloudflare later.
+
+### The Actual DNS Operations
+
+The plugin doesn't implement DNS operations directly. It delegates to `libdns/cloudflare`, which implements the `libdns` interface.
+
+```go
+type RecordSetter interface {
+    SetRecords(ctx context.Context, zone string, records []Record) ([]Record, error)
+}
+
+type RecordDeleter interface {
+    DeleteRecords(ctx context.Context, zone string, records []Record) ([]Record, error)
+}
+```
+
+Caddy's ACME client calls these methods at the appropriate times during the DNS-01 challenge. The plugin is just the adapter that makes Caddy aware of the Cloudflare DNS provider.
+
+## Debugging and Common Issues
+
+### "Invalid request headers"
+
+This error means your API token is malformed or the environment variable isn't set. The first step is to verify the token environment variable is properly configured.
+
+```bash
+echo $CF_API_TOKEN
+```
+
+If the output is empty, you've found the problem. When the environment variable isn't set, Caddy tries to use `{env.CF_API_TOKEN}` literally as the token, which results in authentication failures from your DNS provider's API.
+
+### "timed out waiting for record to fully propagate"
+
+The DNS propagation check is timing out. This usually means DNS caching is happening—your local resolver is caching the old "record doesn't exist" response, so use a custom resolver like `resolvers 1.1.1.1` in your TLS block. Or it's a private DNS issue where `foo.com` is defined in `/etc/hosts` or resolved by a private DNS server, causing the public DNS verification to fail. Use a public resolver or temporarily remove the private DNS entry. Finally, it could be zone access—the token doesn't have access to the zone, so verify the token has `Zone:Read` permission for `foo.com`.
+
+### "expected 1 zone, got 0"
+
+The plugin can't find the zone for your domain. This happens if the domain isn't in Cloudflare DNS, the API token doesn't have `Zone:Read` permission, or the zone name doesn't match (e.g., you're requesting `*.sub.foo.com` but only `foo.com` is in Cloudflare).
+
+### Certificate Transparency Logs
+
+All certificates issued by public CAs are logged to Certificate Transparency logs. You can see your wildcard cert at https://crt.sh. Search for `%.foo.com` to find wildcard certificates.
+
+This is a feature, not a bug. It proves certificates were issued legitimately and helps detect mis-issuance. But it also means anyone can see that `foo.com` has a wildcard certificate, though they can't enumerate individual tenant subdomains.
+
+## Production Deployment Patterns
+
+### Docker Compose
+
+For containerized deployments, Docker Compose provides a straightforward way to run Caddy with persistent certificate storage. Here's a complete configuration.
+
+```yaml
+services:
+  caddy:
+    build:
+      context: .
+      dockerfile: Dockerfile.caddy
+    ports:
+      - "443:443"
+      - "80:80"
+    environment:
+      - CF_API_TOKEN=${CF_API_TOKEN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
+```
+
+The `caddy_data` volume persists certificates across container restarts. The `caddy_config` volume persists Caddy's runtime configuration.
+
+### Dockerfile with Cloudflare Plugin
+
+```dockerfile
+FROM caddy:builder AS builder
+
+RUN xcaddy build \
+    --with github.com/caddy-dns/cloudflare
+
+FROM caddy:latest
+
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+```
+
+This multi-stage build compiles Caddy with the Cloudflare plugin in the builder stage, then copies just the binary to the final image.
+
+### Kubernetes with Cert-Manager
+
+If you're running Kubernetes, consider using cert-manager instead of running ACME clients on your web servers. Cert-manager is purpose-built for Kubernetes certificate lifecycle management and supports DNS-01 challenges with all major cloud providers. 
+
+Here's an example with Cloudflare, but cert-manager has built-in support for Route53, Cloud DNS, Azure DNS, and dozens of other providers.
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-foo-com
+spec:
+  secretName: wildcard-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+  - "*.foo.com"
+  - "foo.com"
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@foo.com
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    - dns01:
+        cloudflare:
+          email: admin@foo.com
+          apiTokenSecretRef:
+            name: cloudflare-api-token
+            key: api-token
+```
+
+Cert-manager provisions the certificate as a Kubernetes Secret, which your Ingress controller (nginx, Traefik, Envoy, etc.) can reference. The `dns01` solver configuration changes based on your provider—swap `cloudflare` for `route53`, `clouddns`, or `azuredns` with the appropriate credential references.
+
+### Multi-Region Deployments
+
+If you're running web servers in multiple regions, certificate storage becomes important. File-based storage works for single-server deployments, but multi-region requires shared certificate storage. 
+
+You have three options, mount the certificate directory from a network filesystem like NFS, EFS, or cloud-provider equivalents, use storage plugins for S3, Consul, Redis, or other distributed stores, or run certificate provisioning centrally and distribute via your secrets management system. 
+
+The simplest approach for most systems is to run certificate provisioning in one region, store certificates in your cloud provider's secrets manager (Vault, AWS Secrets Manager, GCP Secret Manager, Azure Key Vault), and distribute to all regions. This keeps the ACME logic centralized while making certificates available everywhere.
+
+## Security Considerations
+
+The wildcard certificate's private key protects all your tenant subdomains. If it leaks, an attacker can impersonate any tenant. Protect it like you'd protect your database credentials.
+
+### Token Scope Limiting
+
+Your DNS provider credentials should have the minimum required permissions. For Cloudflare, scope tokens to specific zones with only `Zone.Zone:Read` and `Zone.DNS:Edit`. For AWS Route53, use IAM policies that grant access only to specific hosted zones, not all DNS resources in your account. For GCP Cloud DNS, create service accounts with the `dns.admin` role scoped to individual zones, not project-wide access.
+
+Don't use global credentials. If your token leaks, the blast radius should be limited to DNS operations on specific zones, not your entire cloud account or DNS infrastructure.
+
+### Certificate Revocation
+
+If you need to revoke a wildcard certificate, you can't selectively revoke it for one tenant, revocation affects all tenants. This is a fundamental tradeoff of wildcard certificates.
+
+If you need per-tenant revocation capability, you need per-tenant certificates. For most systems, the operational simplicity of wildcards outweighs this limitation.
+
+### Rate Limits
+
+Let's Encrypt rate limits are 50 certificates per registered domain per week, 5 failed validation attempts per account per hostname per hour, and 300 new orders per account per 3 hours. With a wildcard certificate, you're provisioning one certificate regardless of tenant count, so you'll never hit the 50 certificates per week limit. This is a massive advantage over per-tenant certificates.
+
+## When NOT to Use Wildcard Certificates
+
+Skip wildcards if tenants bring their own domains. If tenants use `tenant-a.com` instead of `tenant-a.foo.com`, you need per-tenant certificates. You can still automate this with ACME HTTP-01 challenges, but you'll need per-tenant certificate management.
+
+Skip them if you need deep subdomain nesting. Wildcards only cover one level—`*.foo.com` doesn't cover `api.tenant-a.foo.com`. If your architecture requires nested subdomains, you either need multiple wildcard certificates or per-tenant certificates.
+
+Skip them if regulatory compliance requires certificate isolation. Some compliance frameworks require cryptographic isolation between tenants. If your wildcard private key is compromised, all tenants are affected. For these environments, per-tenant certificates provide isolation.
+
+Skip them if you need per-tenant certificate revocation. If you might need to revoke access for individual tenants by revoking their certificate, wildcard certificates won't work.
+
+## The Bottom Line
+
+For multi-tenant systems with `tenant-id.foo.com` subdomains, wildcard certificates are the right choice. The implementation pattern is the same regardless of your infrastructure, pick a web server (Caddy, Nginx, HAProxy), integrate with your DNS provider's API (Cloudflare, Route53, Cloud DNS, Azure DNS), and let ACME automation handle the rest.
+
+The alternative, per-tenant certificates, is operationally complex, technically fragile, and doesn't scale past a few hundred tenants. Wildcard certificates are the pragmatic choice, and modern tooling makes them trivial to implement across any cloud platform.
+
+If you're building `tenant-id.foo.com` infrastructure, this is the way.

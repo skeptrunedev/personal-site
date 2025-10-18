@@ -7,6 +7,23 @@ import icon from "astro-icon";
 import mdx from "@astrojs/mdx";
 import devtoolsJson from "vite-plugin-devtools-json";
 import { SiteUrl } from "./src/theme.config";
+import fs from "fs";
+
+// Load Caddyfile grammar
+const caddyfileGrammarJson = JSON.parse(
+  fs.readFileSync("./src/grammars/caddyfile.tmLanguage.json", "utf8")
+);
+
+// Create the language object with required properties
+const caddyfileGrammar = {
+  id: "caddyfile",
+  scopeName: caddyfileGrammarJson.scopeName,
+  name: caddyfileGrammarJson.name || "Caddyfile",
+  repository: caddyfileGrammarJson.repository,
+  patterns: caddyfileGrammarJson.patterns,
+  grammar: caddyfileGrammarJson,
+  aliases: ["caddy", "Caddyfile"],
+};
 
 // https://astro.build/config
 export default defineConfig({
@@ -19,10 +36,16 @@ export default defineConfig({
   image: {
     domains: ["127.0.0.1"],
   },
+  markdown: {
+    shikiConfig: {
+      langs: [caddyfileGrammar],
+    },
+  },
   integrations: [
     markdoc(),
     sitemap({
-      filter: (page) => page.includes("ai-horseless-carriages"),
+      filter: (page) =>
+        page.includes("ai-horseless-carriages") && !page.includes("xgboost"),
     }),
     icon(),
     mdx(),
