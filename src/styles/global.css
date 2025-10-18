@@ -11,7 +11,7 @@ html {
     }
   }
 
-  a {
+  a:not(article :is(h1, h2, h3, h4, h5, h6) a) {
     @apply text-amber-700 hover:text-amber-600 underline underline-offset-2 decoration-amber-700/50 visited:text-amber-800 visited:hover:text-amber-700;
   }
 
@@ -117,7 +117,7 @@ html {
   &[data-theme="dark"] {
     @apply bg-neutral-900 text-neutral-200;
 
-    a {
+    a:not(article :is(h1, h2, h3, h4, h5, h6) a) {
       @apply text-amber-500 hover:text-amber-400 decoration-amber-500/50 visited:text-amber-600 visited:hover:text-amber-500;
     }
 

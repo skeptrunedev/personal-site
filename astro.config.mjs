@@ -8,6 +8,8 @@ import mdx from "@astrojs/mdx";
 import devtoolsJson from "vite-plugin-devtools-json";
 import { SiteUrl } from "./src/theme.config";
 import fs from "fs";
+import rehypeSlug from "rehype-slug";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
 
 // Load Caddyfile grammar
 const caddyfileGrammarJson = JSON.parse(
@@ -40,6 +42,15 @@ export default defineConfig({
     shikiConfig: {
       langs: [caddyfileGrammar],
     },
+    rehypePlugins: [
+      rehypeSlug,
+      [
+        rehypeAutolinkHeadings,
+        {
+          behavior: "wrap",
+        },
+      ],
+    ],
   },
   integrations: [
     markdoc(),
