@@ -434,6 +434,16 @@ The simplest approach for most systems is to run certificate provisioning in one
 
 The wildcard certificate's private key protects all your tenant subdomains. If it leaks, an attacker can impersonate any tenant. Protect it like you'd protect your database credentials.
 
+### Adding Your Domain to the Public Suffix List
+
+If you're running a multi-tenant platform where each tenant gets a subdomain, you should submit your domain to the [Public Suffix List](https://publicsuffix.org/). The PSL is a registry that browsers use to determine security boundaries between sites.
+
+Without PSL registration, browsers treat `tenant-a.foo.com` and `tenant-b.foo.com` as the same site. This means one tenant could potentially set cookies readable by another tenant, creating security and privacy issues.
+
+When you add `foo.com` to the PSL, browsers treat each tenant subdomain as an independent site. Cookies set by `tenant-a.foo.com` cannot be read by `tenant-b.foo.com`. This provides proper isolation between tenants at the browser level.
+
+Major platforms like GitHub (`github.io`), Vercel (`vercel.app`), and Netlify (`netlify.app`) are all registered on the PSL. If you're building tenant infrastructure, you should be too. Submit via the [PSL GitHub repository](https://github.com/publicsuffix/list) with documentation proving you control the domain and explaining your multi-tenant use case.
+
 ### Token Scope Limiting
 
 Your DNS provider credentials should have the minimum required permissions. For Cloudflare, scope tokens to specific zones with only `Zone.Zone:Read` and `Zone.DNS:Edit`. For AWS Route53, use IAM policies that grant access only to specific hosted zones, not all DNS resources in your account. For GCP Cloud DNS, create service accounts with the `dns.admin` role scoped to individual zones, not project-wide access.
