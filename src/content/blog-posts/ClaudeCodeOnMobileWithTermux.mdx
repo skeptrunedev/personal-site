@@ -1,0 +1,291 @@
+---
+title: "How I Use Claude Code on My Phone with Termux and Tailscale"
+slug: claude-code-on-mobile-termux-tailscale
+summary: You don't need a new startup or third-party service to use Claude Code on your phone. You just need SSH, Tailscale, and Termux. Here's how to code from anywhere with the tools you already have.
+author: Nicholas Khami
+createdAt: 2025-10-19T12:00:00.000Z
+updatedAt: 2025-10-19T12:00:00.000Z
+isDraft: false
+isFeatured: true
+displaySummary: false
+coverImage: src/assets/images/blog-posts/ClaudeCodeOnMobileWithTermux/cover.png
+displayCoverImage: false
+categories:
+  - ai
+  - mobile
+  - infrastructure
+  - vibecoding
+---
+
+There's a mini gold rush to put [Claude Code](https://claude.ai/claude-code) on your phone. Some startups are building custom apps, others are creating managed cloud environments. They're solving real problems, but you're trading raw Unix power for convenience. If you have a desktop and 20 minutes, you can get full kernel access with SSH, [termux](https://termux.dev/en/), and [tailscale](https://tailscale.com/).
+
+Yesterday I [posted about](https://x.com/skeptrune/status/1979668217930084596) shipping a feature to this blog from the passenger seat while driving to Apple Hill, CA from San Francisco. I SSH'd into my office desktop from my phone, prompted Claude to make the changes, tested them on my phone's browser, and pushed to production in 10 minutes. That post got 130k impressions and dozens of people asked for the setup.
+
+This article walks through doing SSH-based mobile development with Claude Code. If you have a desktop that stays on (or a cheap VPS), you can get full terminal access from your phone with session persistence, port forwarding, and the ability to test your code on your actual mobile browser. The initial setup takes about 20 minutes and just works once configured.
+
+## The Architecture
+
+The setup uses five standard Unix tools that work together without custom integration. A **desktop** runs Claude Code, **tailscale** creates a private network between your devices, **termux** gives you a real terminal on Android, **SSH** handles the connection, and **tmux** keeps your sessions alive when you disconnect.
+
+### Step 1: Setup Your Desktop
+
+You need a computer that stays on. This could be a desktop at home, a desktop at your office, a cloud VM, or a home server. It doesn't need to be powerful. Claude Code just makes API calls, the actual compute happens at Anthropic.
+
+I keep a desktop at my office that stays on 24/7. It's running Ubuntu with Claude Code installed. The computer does nothing else. It just sits there waiting for me to SSH in and start coding.
+
+First, install Claude Code globally using npm. This gives you the `claude` command that you'll use to start coding sessions.
+
+```bash
+npm install -g @anthropics/claude-code
+```
+
+Next, install tmux for session persistence. When you disconnect from SSH (phone locks, network drops, whatever), tmux keeps your Claude Code session running in the background. When you reconnect, you pick up exactly where you left off.
+
+```bash
+sudo apt install tmux  # Ubuntu/Debian
+brew install tmux      # macOS
+```
+
+With Claude Code and tmux installed, your desktop is ready to host your development sessions.
+
+### Step 2: Install Tailscale Everywhere
+
+Tailscale creates a private network between all your devices. Your phone gets a stable IP address that can reach your desktop, even when you're on different networks. It just works.
+
+On your desktop, run the Tailscale installer. The script will detect your OS and install the right package. Then bring up the Tailscale connection, which will prompt you to authenticate in your browser.
+
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+```
+
+Install Tailscale on your phone from the Play Store. Sign in with the same account. Your devices are now on the same network.
+
+You'll need your desktop's Tailscale IP address to connect from your phone. Grab it with this command.
+
+```bash
+tailscale ip -4
+```
+
+You'll get something like `100.64.0.5`. That's your desktop's address on the Tailscale network. It's stable, it's private, and it works from anywhere.
+
+### Step 3: Install Termux on Your Phone
+
+Termux is a terminal emulator for Android that gives you a real Linux environment. Not a toy terminal. A real one with bash, ssh, and full package management.
+
+Install Termux from F-Droid, not the Play Store. The Play Store version is outdated and broken. Get it from https://f-droid.org/en/packages/com.termux/.
+
+Once installed, you'll need to update the package repositories and install the SSH client. Termux uses `pkg` as its package manager, which is basically a wrapper around apt.
+
+```bash
+pkg update
+pkg install openssh
+```
+
+With OpenSSH installed, Termux can now connect to your desktop over SSH.
+
+### Step 4: SSH Into Your Desktop
+
+Now for the moment of truth. Open Termux and SSH to your desktop using the Tailscale IP you grabbed earlier. Replace `100.64.0.5` with your actual IP and `your-username` with your desktop username.
+
+```bash
+ssh your-username@100.64.0.5
+```
+
+The first time you connect, SSH will ask you to verify the host fingerprint. Type `yes`. Then enter your password.
+
+You're in. You're now running a shell on your desktop, from your phone, over a secure encrypted connection that works anywhere you have internet.
+
+### Step 5: Use tmux for Session Persistence
+
+tmux is what makes this whole setup practical. When you disconnect from SSH, your tmux session keeps running on the desktop. When you reconnect, you attach to the same session and everything is exactly where you left it.
+
+You're now connected to your desktop via SSH from your phone. Start a new tmux session with a name you'll remember. I usually name mine after the project I'm working on.
+
+```bash
+tmux new -s code
+```
+
+This creates a session named "code". You can name it anything. Inside the tmux session, launch Claude Code and start working.
+
+```bash
+claude
+```
+
+Now you're coding. On your phone. Using Claude Code. Running on your desktop.
+
+When you need to disconnect, don't exit Claude Code. Don't exit tmux. Just close Termux or let your phone lock. The tmux session stays running on your desktop.
+
+Later, when you want to code again, SSH back in and reattach to your session. Everything will be exactly where you left it.
+
+```bash
+ssh your-username@100.64.0.5
+tmux attach -t code
+```
+
+Your conversation with Claude is still there. Your file context is still loaded. You can continue your previous task immediately.
+
+In the Apple Hill example from the intro, this is exactly what I did. I SSH'd in, ran `tmux attach -t personalsite` to reconnect to my development session, and told Claude to add a section about the Public Suffix List and make headings into clickable anchor links. The session had been running for days. I just picked up exactly where I'd left off.
+
+## Why This Works Better Than Custom Apps
+
+Every startup trying to solve "Claude Code on mobile" is building abstractions on top of these primitives. They're not giving you anything you can't already do with SSH and Termux. They're just wrapping it in a prettier UI and charging for hosting.
+
+When you do it yourself, you get several advantages.
+
+**Port forwarding just works.** With Tailscale, your desktop's ports are directly accessible from your phone. No configuration, no exposing services to the public internet, no proxies adding latency. Your phone and desktop are on the same private network, so anything listening on your desktop is one IP address away.
+
+**Full CLI access to configure your environment.** Want to run your dev server with `--host` so you can test on your phone's browser? Just add the flag. Need to adjust firewall rules, modify server configs, or install system packages? You have root access. Native mobile coding apps can't offer this level of control because it's too niche for their target users, but for power users it's essential.
+
+**Session persistence that actually works.** tmux was built for this. Your session survives network disconnections, phone reboots, and SSH reconnects. You never lose your place.
+
+**Your own hardware.** Your desktop has your SSH keys, your git credentials, your environment exactly how you configured it. You're not coding in a disposable cloud container.
+
+## The Mobile Experience
+
+I'm not going to pretend coding on a phone is as good as coding on a desktop. It's not. The screen is small. The keyboard is mediocre. You can't see multiple files at once.
+
+But Claude Code is different from traditional coding. You're not typing out functions character by character. You're describing what you want, reviewing Claude's changes, and approving or rejecting them. That workflow actually works on mobile.
+
+The Apple Hill example wasn't cherry-picked. I've shipped real features from my phone. I've fixed production bugs while getting coffee. I've reviewed pull requests from the back of an Uber. It's not my primary development environment, but it's shockingly capable when I need it.
+
+The key is that Claude Code is conversational. You're having a back-and-forth with an AI that writes code for you. That interaction model translates to mobile better than traditional text editing. You're reading more than you're typing, and phones are great for reading.
+
+## Practical Tips
+
+Once you have the basic setup running, there are a few tweaks that make the mobile coding experience dramatically better. These aren't strictly necessary, but they'll save you time and frustration.
+
+### Test Your Changes on Your Phone's Browser
+
+This is the killer feature. You're not just editing code remotely, you can test it on your phone while the dev server runs on your desktop.
+
+When I was working on the blog changes from Apple Hill, I wanted to see how the clickable anchor links looked on mobile. The trick is starting your dev server with the `--host` flag, which makes it accessible on your Tailscale network instead of just localhost.
+
+```bash
+yarn dev --host
+```
+
+For Vite (which Astro uses), this binds the dev server to `0.0.0.0` instead of `127.0.0.1`. For other frameworks: `npm start -- --host` for React, `next dev -H 0.0.0.0` for Next.js, `python manage.py runserver 0.0.0.0:8000` for Django.
+
+Grab your desktop's Tailscale IP again if you forgot it.
+
+```bash
+tailscale ip -4
+```
+
+Then on your phone's browser, navigate to `http://100.64.0.5:4321` (replace with your Tailscale IP and port).
+
+You're now viewing your local dev server, running on your desktop 2.5 hours away, in your phone's browser. I saw the anchor links were styled wrong, told Claude to fix them, refreshed, confirmed they looked good, and pushed. The whole workflow took maybe 10 minutes.
+
+You're developing with the actual target device in your hand. You can test responsive layouts, check mobile interactions, and iterate immediately instead of deploying to staging or waiting until you're back at your desk.
+
+### Use SSH Keys
+
+Don't type your password every time you SSH. Generate an SSH key on your phone and add it to your desktop's authorized keys.
+
+Open Termux and generate an ed25519 key (the modern standard). Then use `ssh-copy-id` to automatically add it to your desktop's authorized keys file.
+
+```bash
+ssh-keygen -t ed25519
+ssh-copy-id your-username@100.64.0.5
+```
+
+Now you can SSH without a password.
+
+### Create an SSH Config
+
+Make connecting easier by adding your desktop to your SSH config. Instead of typing `ssh your-username@100.64.0.5` every time, you can create an alias. Make a file at `~/.ssh/config` in Termux with this content.
+
+```bash
+Host desktop
+    HostName 100.64.0.5
+    User your-username
+```
+
+Now you can just type `ssh desktop` instead of remembering the IP and username.
+
+### Use a Better Keyboard
+
+Termux works with external keyboards. I keep a small Bluetooth keyboard in my bag. When I'm actually trying to get work done on my phone, I pull out the keyboard. It makes a massive difference.
+
+The phone screen is fine for reading. The keyboard makes typing bearable.
+
+### Set Up tmux Keybindings
+
+tmux's default keybindings are terrible on mobile. Remap them to something sensible. On your desktop, create or edit `~/.tmux.conf` and add these bindings. They make tmux way easier to use on a phone keyboard.
+
+```bash
+# Use Ctrl-A instead of Ctrl-B (easier to type)
+unbind C-b
+set -g prefix C-a
+bind C-a send-prefix
+
+# Split panes with | and -
+bind | split-window -h
+bind - split-window -v
+```
+
+Now you can manage tmux sessions without finger gymnastics.
+
+### Run Multiple Sessions
+
+You can have multiple tmux sessions for different projects. I usually have one for each repo I'm actively working on. Start them with descriptive names so you remember what's what.
+
+```bash
+tmux new -s backend
+tmux new -s frontend
+tmux new -s experiments
+```
+
+When you SSH in and want to see what sessions are running, list them.
+
+```bash
+tmux ls
+```
+
+Then attach to whichever one you want to work on.
+
+```bash
+tmux attach -t frontend
+```
+
+This keeps your different projects isolated. You can switch contexts just by attaching to a different session.
+
+## Security Considerations
+
+You're SSH'ing into your desktop over the internet. That's a potential security risk if you do it wrong. Do it right with a few precautions.
+
+**Use Tailscale.** Never expose SSH to the public internet. Use Tailscale to create a private network between your devices. Your SSH traffic stays encrypted and never touches the public internet directly.
+
+**Use SSH keys.** Disable password authentication entirely. Keys are longer, stronger, and can't be brute-forced. Edit `/etc/ssh/sshd_config` on your desktop and set these values, then restart sshd.
+
+```bash
+PasswordAuthentication no
+PubkeyAuthentication yes
+```
+
+**Keep your phone secure.** Your phone now has SSH access to your development machine. If someone steals your phone, they can access your desktop. Use a strong PIN or biometric lock. Enable disk encryption. Consider using a password manager for your SSH key passphrase.
+
+**Monitor SSH access.** Check who's connected to your machine with `who` or `w`. Check SSH logs with `sudo tail -f /var/log/auth.log`. If you see connections you don't recognize, revoke SSH keys and investigate.
+
+The threat model here is pretty mild. Your SSH traffic is encrypted. Your Tailscale network is private. The main risk is losing your phone, which is why phone security matters.
+
+## When This Doesn't Work
+
+This setup assumes you have a desktop that stays on. If you don't, you need a cloud VM or a home server. That's still not a reason to use a third-party service. Just rent a $5/month VPS from [DigitalOcean](https://www.digitalocean.com/) or [Hetzner](https://www.hetzner.com/), install Tailscale and Claude Code, and SSH into it the same way.
+
+This also assumes you're on Android. If you're on iOS, Termux isn't available. You'll need to use a different SSH client like [Blink](https://blink.sh/) or [Prompt](https://panic.com/prompt/). The rest of the setup is the same.
+
+If you're on unstable internet, SSH can be frustrating. [Mosh](https://mosh.org/) (mobile shell) is designed for high-latency or unreliable connections. Install it on both your phone and desktop, then use `mosh desktop` instead of `ssh desktop`. It handles disconnections gracefully and keeps your terminal responsive even on bad networks.
+
+## The Bottom Line
+
+Mobile development with Claude Code doesn't require new infrastructure or custom applications. The components you need are SSH, Tailscale, Termux, and a desktop that stays on. These are standard Unix tools that have been solving remote access problems for decades.
+
+SSH has been the standard for secure remote access since 1995. Tmux has provided session management since 2007. Tailscale is newer, but it's built on WireGuard, which has undergone extensive security audits. These tools are mature, well-documented, and widely deployed in production environments.
+
+The underlying problem, accessing a remote development environment from a mobile device, was solved long before mobile coding became a focus. This approach applies those established solutions to Claude Code without requiring custom middleware or managed services.
+
+If you have a desktop or VPS and 20 minutes for setup, you can have this working today. Install termux, configure tailscale, and connect via SSH. The workflow is straightforward and the tools are reliable.
+
+Glory be to the AI overlords, who grant us the grace to code at the bar without shame.
