@@ -1,0 +1,71 @@
+---
+title: "Prompting the Agent Loop"
+slug: prompting-the-agent-loop
+summary: The difference between a language model and an agent isn't just tool access. It's about giving the agent a condition to loop on. Here's how to prompt agents to actually finish tasks instead of just taking first steps.
+author: Nicholas Khami
+createdAt: 2025-11-02T12:00:00.000Z
+updatedAt: 2025-11-02T12:00:00.000Z
+isDraft: true
+isFeatured: false
+displaySummary: false
+coverImage: src/assets/images/blog-posts/PromptingTheAgentLoop/cover.png
+displayCoverImage: true
+categories:
+  - ai
+---
+
+The [standard definition](https://simonwillison.net/2025/Sep/18/agents/) of an AI agent is "a language model which runs tools in a loop to achieve a goal." The critical insight is that your prompt should define the goal as a condition the agent can loop on.
+
+## The Pattern
+
+Compare these two prompts for testing a function `add(a, b)`:
+
+Without a loop condition:
+```
+Write a test for add(a, b) that sums two positive numbers.
+```
+
+With a loop condition:
+```
+Write a test for add(a, b) that sums two positive numbers and run it.
+Iterate until it passes.
+```
+
+The second prompt creates a fundamentally different interaction. The agent writes the test, runs it, sees failures, fixes them, and loops until the test passes. It handles the entire debug cycle without your input.
+
+## More Examples
+
+Adding a blog post to your site:
+
+```
+Write a blog post about prompting the agent loop and test that it's
+correctly done by running yarn build until you see it in the dist folder.
+```
+
+The agent writes the post, runs the build, and debugs any issues with frontmatter, file location, or slug until the build succeeds.
+
+Fixing an authentication bug:
+
+```
+Fix the authentication bug. Run the test suite until all auth tests pass.
+```
+
+The pattern is consistent. Describe the task, describe how to verify completion, and tell the agent to iterate until verification passes.
+
+## When You Cannot Automate Verification
+
+For tasks without automatable verification, ask for multiple iterations upfront:
+
+```
+Write a compelling intro for this blog post. Give me three variations with
+different tones and explain the trade-offs of each.
+```
+
+This is less powerful than a full verification loop, but more effective than a single attempt.
+
+## The Shift
+
+With looping conditions, your role changes from QA tester to product manager. You define success and the agent handles iteration. Instead of checking each step, you describe the end state and let the agent determine how to reach it.
+
+The unlock is simple. Give the agent a condition to satisfy, tell it to iterate until the condition is met, and let it do the work.
+
