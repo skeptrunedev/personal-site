@@ -14,58 +14,35 @@ categories:
   - ai
 ---
 
-The [standard definition](https://simonwillison.net/2025/Sep/18/agents/) of an AI agent is "a language model which runs tools in a loop to achieve a goal." The critical insight is that your prompt should define the goal as a condition the agent can loop on.
+I have seen lots of people offering Claude Code tips, but I think there's only one piece of advice which matters. You need to prompt the loop.
 
-## The Pattern
+Agent was meaningless jargon until earlier this year when the industry standardized around the [standard definition](https://simonwillison.net/2025/Sep/18/agents/) of "a language model which runs tools in a loop to achieve a goal." You will get way more value out of AI tools if you understand how to control agents through the loop.
 
-Compare these two prompts for testing a function `add(a, b)`:
+## What is This Loop You Speak Of?
 
-Without a loop condition:
-```
-Write a test for add(a, b) that sums two positive numbers.
-```
+Consider the contrived example of asking claude code "add a new function to the `index.ts` file called `sum` which accepts an array of numbers and returns the result of adding them all together". Sounds clear and like it should work right? WRONG! Watch the output below.
 
-With a loop condition:
-```
-Write a test for add(a, b) that sums two positive numbers and run it.
-Iterate until it passes.
-```
+{/* TODO: video of claude code running that prompt */}
 
-The second prompt creates a fundamentally different interaction. The agent writes the test, runs it, sees failures, fixes them, and loops until the test passes. It handles the entire debug cycle without your input.
+We are missing the ability to handle empty arrays, NaN values, Infinity, String numbers, floating point precision, and negative zero. First, fuck javascript. Second this is really nore our fault than Claude's.  
 
-## More Examples
+Our prompt isn't giving the agent anything to test its changes with, so it's bound to miss some things. You want something more like "look at @index.ts and start by making sure you have a way to unit tests functions which get added to that file. Add jest and new ts files if you need to, add a new script to @package.json. Then scaffold a new sum function in @index.ts, write robust tests for it, run them, watch them fail, implement thr sum function until they all pass." Watch *this baby* run!
 
-Adding a blog post to your site:
+{/* TODO: insert video for this prompt here */}
 
-```
-Write a blog post about prompting the agent loop and test that it's
-correctly done by running yarn build until you see it in the dist folder.
-```
+People are creating new jargon like "context engineering" to describe this which annoys me because it doesn't ar all describe what i'm changing beteen the first and second versions to make things work better.
 
-The agent writes the post, runs the build, and debugs any issues with frontmatter, file location, or slug until the build succeeds.
+## It's all the agent loop! 
 
-Fixing an authentication bug:
+I request forgiveness if you feel me giving off "old man yells at cloud" energy at this point, but I swear thisbis game changing advice.
 
-```
-Fix the authentication bug. Run the test suite until all auth tests pass.
-```
+{/* TODO: make this text rainbow highlighted */}
+**run them, watch them fail, implement until they all pass**
 
-The pattern is consistent. Describe the task, describe how to verify completion, and tell the agent to iterate until verification passes.
+You should be providing some kind of loop condition similar to that every time you ask the AI to do something.
 
-## When You Cannot Automate Verification
+## People with existing professional experience will benefit more from AI
 
-For tasks without automatable verification, ask for multiple iterations upfront:
+I see my job when working with the agent to be doing ehat I can to make its odds of solving my problem as high as possible.
 
-```
-Write a compelling intro for this blog post. Give me three variations with
-different tones and explain the trade-offs of each.
-```
-
-This is less powerful than a full verification loop, but more effective than a single attempt.
-
-## The Shift
-
-With looping conditions, your role changes from QA tester to product manager. You define success and the agent handles iteration. Instead of checking each step, you describe the end state and let the agent determine how to reach it.
-
-The unlock is simple. Give the agent a condition to satisfy, tell it to iterate until the condition is met, and let it do the work.
-
+I'm better at that than someone newer to programming the same way I was before AI. Years of experience are, jf anything more valuable than before, not less.
