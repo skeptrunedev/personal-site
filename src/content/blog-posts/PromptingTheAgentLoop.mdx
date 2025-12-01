@@ -1,48 +1,91 @@
 ---
-title: "Prompting the Agent Loop"
+title: "Prompt the Loop When Using Coding Agents"
 slug: prompting-the-agent-loop
 summary: The difference between a language model and an agent isn't just tool access. It's about giving the agent a condition to loop on. Here's how to prompt agents to actually finish tasks instead of just taking first steps.
 author: Nicholas Khami
 createdAt: 2025-11-02T12:00:00.000Z
-updatedAt: 2025-11-02T12:00:00.000Z
-isDraft: true
-isFeatured: false
+updatedAt: 2025-12-01T12:00:00.000Z
+isDraft: false
+isFeatured: true
 displaySummary: false
-coverImage: src/assets/images/blog-posts/PromptingTheAgentLoop/cover.png
-displayCoverImage: true
+coverImage: src/assets/images/blog-posts/PromptingTheAgentLoop/agentdefinition.png
+displayCoverImage: false
 categories:
   - ai
+  - tutorial
 ---
 
-I have seen lots of people offering Claude Code tips, but I think there's only one piece of advice which matters. You need to prompt the loop.
+![Adam's tweet about AI agents doing tedious work](src/assets/images/blog-posts/PromptingTheAgentLoop/adamdotdev-tweet.webp)
 
-Agent was meaningless jargon until earlier this year when the industry standardized around the [standard definition](https://simonwillison.net/2025/Sep/18/agents/) of "a language model which runs tools in a loop to achieve a goal." You will get way more value out of AI tools if you understand how to control agents through the loop.
+You can safely ignore advice about coding agents that doesn't mention loop structure.
+
+"Agent" is an overloaded term, so I want to clarify that I'm using [simonw's definition](https://simonwillison.net/2025/Sep/18/agents/) of "a language model which runs tools in a loop to achieve a goal" when I say "agent" throughout this post.
+
+> If that doesn't make sense to you then read [fly.io's guide on writing agents](https://fly.io/blog/everyone-write-an-agent/) or [ampcode's guide](https://ampcode.com/how-to-build-an-agent/) and try building your own micro-agent first before continuing. I promise it's a worthwhile exercise.
 
 ## What is This Loop You Speak Of?
 
-Consider the contrived example of asking claude code "add a new function to the `index.ts` file called `sum` which accepts an array of numbers and returns the result of adding them all together". Sounds clear and like it should work right? WRONG! Watch the output below.
+Consider this example prompt asking claude code to write a `generateSlug` function.
 
-{/* TODO: video of claude code running that prompt */}
+```
+add a new function to the @index.ts file called `generateSlug` which accepts a blog post title and returns a URL-friendly slug
+```
 
-We are missing the ability to handle empty arrays, NaN values, Infinity, String numbers, floating point precision, and negative zero. First, fuck javascript. Second this is really nore our fault than Claude's.  
+Sounds clear and like it should work right? WRONG! Watch the output below.
 
-Our prompt isn't giving the agent anything to test its changes with, so it's bound to miss some things. You want something more like "look at @index.ts and start by making sure you have a way to unit tests functions which get added to that file. Add jest and new ts files if you need to, add a new script to @package.json. Then scaffold a new sum function in @index.ts, write robust tests for it, run them, watch them fail, implement thr sum function until they all pass." Watch *this baby* run!
+<video controls loop muted playsinline style="width: 100%; max-width: 100%; border-radius: 8px;">
+  <source src="/src/assets/images/blog-posts/PromptingTheAgentLoop/badprompt.mp4" type="video/mp4" />
+  Your browser does not support the video tag.
+</video>
 
-{/* TODO: insert video for this prompt here */}
+We're missing unicode characters, special characters, multiple spaces, edge cases. Curse javascript all you want, but this is our fault, not Claude's.
 
-People are creating new jargon like "context engineering" to describe this which annoys me because it doesn't ar all describe what i'm changing beteen the first and second versions to make things work better.
+Our prompt doesn't give the agent anything to test against. You want something more like
 
-## It's all the agent loop! 
+```
+look at @index.ts and start by making sure you have a way to unit test functions which get added to that file. Add jest and new ts files if you need to, add a new script to @package.json. Then scaffold a new generateSlug function in @index.ts, write robust tests for it covering unicode, special chars, multiple spaces, edge cases, run them, watch them fail, implement the slug generator until they all pass. Unit tests should be in the same index.ts file as the function implementation.
+```
 
-I request forgiveness if you feel me giving off "old man yells at cloud" energy at this point, but I swear thisbis game changing advice.
+Watch *this baby* run!
 
-{/* TODO: make this text rainbow highlighted */}
-**run them, watch them fail, implement until they all pass**
+<video controls loop muted playsinline style="width: 100%; max-width: 100%; border-radius: 8px;">
+  <source src="/src/assets/images/blog-posts/PromptingTheAgentLoop/goodprompt.mp4" type="video/mp4" />
+  Your browser does not support the video tag.
+</video>
 
-You should be providing some kind of loop condition similar to that every time you ask the AI to do something.
+## It's all the agent loop!
 
-## People with existing professional experience will benefit more from AI
+The key difference is this phrase from the second prompt:
 
-I see my job when working with the agent to be doing ehat I can to make its odds of solving my problem as high as possible.
+> "run them, watch them fail, implement the slug generator until they all pass"
 
-I'm better at that than someone newer to programming the same way I was before AI. Years of experience are, jf anything more valuable than before, not less.
+This gives the agent a loop condition, a test to run repeatedly while iterating. Without it, the agent takes one shot and stops. With it, the agent keeps working until satisfied.
+
+## Common Loop Condition Patterns
+
+The pattern is always the same. Describe the work, specify validation, then tell the agent to iterate until the validation passes. Here are three templates you can adapt.
+
+**For new features**
+```
+[describe feature], write tests for [key behaviors], run them, fix until they all pass
+```
+
+**For bug fixes**
+```
+reproduce the bug in [file/test], fix the issue, verify the bug no longer occurs and all tests pass
+```
+
+**For build/compile issues**
+```
+[make changes], run the build, fix any errors or type issues until it compiles successfully
+```
+
+All of the above patterns include some kind of check; either tasts pass or fail, builds succeed or error, bugs reproduce or don't. Agents can take these abstract descriptions and turn them into concrete tools which they can run over and over until the condition is met.
+
+Prompting outside of this pattern is the equivalent of grabbing a jr dev 3 shots past [Ballmer's peak](https://en.wikipedia.org/wiki/Ballmer_Peak) and asking them to fix a bug.
+
+## Conclusion
+
+Senior developers know what loop conditions work for different tasks. If you're junior and not sure what's appropriate for a given task, use the planning mode offered by [claude code](https://www.claude.com/product/claude-code), [cursor](https://cursor.com/), or your coding agent of choice to help you craft them.
+
+Good luck out there!
