@@ -15,6 +15,9 @@ categories:
   - tutorial
 ---
 
+import badpromptVideo from '../../assets/images/blog-posts/PromptingTheAgentLoop/badprompt.mp4';
+import goodpromptVideo from '../../assets/images/blog-posts/PromptingTheAgentLoop/goodprompt.mp4';
+
 ![Adam's tweet about AI agents doing tedious work](src/assets/images/blog-posts/PromptingTheAgentLoop/adamdotdev-tweet.webp)
 
 You can safely ignore advice about coding agents that doesn't mention loop structure.
@@ -34,7 +37,7 @@ add a new function to the @index.ts file called `generateSlug` which accepts a b
 Sounds clear and like it should work right? WRONG! Watch the output below.
 
 <video controls loop muted playsinline style="width: 100%; max-width: 100%; border-radius: 8px;">
-  <source src="/src/assets/images/blog-posts/PromptingTheAgentLoop/badprompt.mp4" type="video/mp4" />
+  <source src={badpromptVideo} type="video/mp4" />
   Your browser does not support the video tag.
 </video>
 
@@ -49,7 +52,7 @@ look at @index.ts and start by making sure you have a way to unit test functions
 Watch *this baby* run!
 
 <video controls loop muted playsinline style="width: 100%; max-width: 100%; border-radius: 8px;">
-  <source src="/src/assets/images/blog-posts/PromptingTheAgentLoop/goodprompt.mp4" type="video/mp4" />
+  <source src={goodpromptVideo} type="video/mp4" />
   Your browser does not support the video tag.
 </video>
 
