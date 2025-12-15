@@ -3,6 +3,7 @@ import ImageFourSquareWorktrees from "@components/blog/UsingGitWorktreesWithAI/I
 import SimpleLayout from "@layouts/Simple.astro";
 import { Image } from "astro:assets";
 import { getCollection, render } from "astro:content";
+import { SiteUrl } from "src/theme.config";
 
 export async function getStaticPaths() {
   const allPosts = await getCollection("blogPosts");
@@ -34,7 +35,7 @@ const i18n = entry.data;
 <SimpleLayout
   title=`${i18n.title}`
   type="article"
-  imageUrl={i18n.coverImage?.src}
+  imageUrl={i18n.coverImage ? `${SiteUrl}${i18n.coverImage.src}` : undefined}
   description={i18n.summary}
   publishedTime={i18n.createdAt?.toISOString()}
   modifiedTime={i18n.updatedAt?.toISOString()}
@@ -84,11 +85,11 @@ const i18n = entry.data;
     }
     {
       i18n.coverImage && (i18n.displayCoverImage ?? true) && (
-        <div class="flex flex-col space-y-2 mb-8 sm:mb-10 md:mb-12 mt-4">
+        <div class="flex flex-col space-y-2 my-8">
           <Image
             src={i18n.coverImage}
             alt="Cover image"
-            class="rounded-sm w-full mx-auto"
+            class="rounded-sm max-w-full"
           />
         </div>
       )
