@@ -1,0 +1,202 @@
+---
+title: "Org-Level Email Campaigns are Somehow an Unsolved Problem"
+slug: org-level-email-campaigns-instantly
+summary: No email tool stops a whole org when one person replies. Here's how I built org-level campaign control with Instantly and webhooks.
+author: Nicholas Khami
+createdAt: 2025-12-28T12:00:00.000Z
+updatedAt: 2025-12-28T12:00:00.000Z
+isDraft: false
+isFeatured: true
+displaySummary: false
+coverImage: src/assets/images/blog-posts/OrgLevelEmailCampaignsWithInstantly/cover.png
+displayCoverImage: true
+categories:
+  - ai
+  - infrastructure
+  - marketing
+---
+
+## Defining the Goal
+
+We launched new [community discord and slack bots](https://www.mintlify.com/docs/ai/discord#discord-bot) recently at Mintlify and needed to do some customer marketing to let users who had large communities know about them.
+
+Our goal was to send an email sequence to the ~3-10 people from each organization who we identified as being able to get value from the feature. Understand that the nature of this product is that once one person from an organization enables the bot, the task is complete, and we don't want to keep emailing everyone else from the org.
+
+I thought this would be easy using any of the email marketing tools out there like [Resend](https://resend.com/) or [Loops](https://loops.so/), but this was not the case. All of the available tools shockingly handle campaigns at a user instead of organization level. 
+
+None of them have the concept of "stop emailing this group when any member takes action." They're all built for individual drip campaigns, not org-level outreach.
+
+## Tool Selection
+
+Claude Code has made me [quite lazy](https://thomasorus.com/i-tried-coding-with-ai-i-became-lazy-and-stupid) insofar as I try to get everything I can done using it instead of doing things myself manually. Therefore my number one criteria when picking a tool to solve the above problem with was a large API surface that claude could work with.
+
+[Instantly](https://instantly.ai) was my final selection given its API was the most robust and [well documented](https://developer.instantly.ai/api/v2/analytics/getwarmupanalytics). It gave claude full access to campaigns, leads, and sequences while also being capable of sending webhooks on reply and unsubscribe events.
+
+Kind of random aside but [JAMstack](https://jamstack.org/) architecture patterns are probably going to make a comeback with AI. I think tools like [trpc](https://trpc.io/) are going to fall out of favor relative to [openapi](https://www.openapis.org/) driven patterns that AI agents can better understand. Seperation of UI and business logic is the way forward if we want our apps to be accessible by AI.
+
+## Solution Architecture
+
+The Instantly campaign holds the multi-email sequence and is configured to stop on reply. A lead upload script reads a CSV of contacts, groups them by company, and uploads them to Instantly with a `companyName` custom variable.
+
+Then a webhook server listens for reply events, finds all leads from the same company, and marks them as "not interested" to stop their sequences.
+
+```
+CSV (company, email)
+    → Upload Script
+    → Instantly (leads with companyName)
+
+Reply received
+    → Instantly webhook
+    → Webhook server
+    → Find leads by companyName
+    → Update lead status
+    → Sequence stops for whole company
+```
+
+### Creating the Campaign
+
+The campaign itself is straightforward. Set `stop_on_reply` to true so Instantly stops the sequence for whoever replies, then define your email steps with delays between them.
+
+```bash
+curl -X POST https://api.instantly.ai/api/v2/campaigns \
+  -H "Authorization: Bearer $INSTANTLY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Feature Launch Outreach",
+    "stop_on_reply": true,
+    "stop_on_auto_reply": true,
+    "sequences": [{
+      "steps": [
+        {"type": "email", "delay": 0, "variants": [{"subject": "...", "body": "..."}]},
+        {"type": "email", "delay": 3, "variants": [{"subject": "...", "body": "..."}]}
+      ]
+    }]
+  }'
+```
+
+### Uploading Leads
+
+The important bit is to include a `companyName` custom variable with every lead. Our webhook server uses that to find all leads from the same company and unsubscribe them on relevant events.
+
+```python
+import csv
+import requests
+
+API_KEY = "your-api-key"
+CAMPAIGN_ID = "your-campaign-id"
+
+with open("contacts.csv") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        emails = row["emails"].split(";")
+        company = row["company_name"]
+
+        for email in emails:
+            requests.post(
+                "https://api.instantly.ai/api/v2/leads",
+                headers={"Authorization": f"Bearer {API_KEY}"},
+                json={
+                    "email": email.strip(),
+                    "company_name": company,
+                    "custom_variables": {"companyName": company},
+                    "campaign": CAMPAIGN_ID
+                }
+            )
+```
+
+### Registering the Webhook
+
+Tell Instantly to POST to your server whenever someone replies. You'll need the campaign ID from earlier.
+
+```bash
+curl -X POST https://api.instantly.ai/api/v2/webhooks \
+  -H "Authorization: Bearer $INSTANTLY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target_hook_url": "https://your-server.com/webhook/reply",
+    "event_type": "reply_received",
+    "campaign_id": "your-campaign-id"
+  }'
+```
+
+## Webhook Server
+
+This is the part that makes it all work. When anyone replies, the webhook server extracts the company name, queries Instantly for all leads with that company name, and updates each lead's status to stop their sequence.
+
+```javascript
+const express = require('express');
+const app = express();
+app.use(express.json());
+
+const API_KEY = process.env.INSTANTLY_API_KEY;
+const CAMPAIGN_ID = process.env.CAMPAIGN_ID;
+
+app.post('/webhook/reply', async (req, res) => {
+  const event = req.body;
+
+  if (event.event_type !== 'reply_received') {
+    return res.json({ status: 'ignored' });
+  }
+
+  const leadEmail = event.lead_email;
+  const companyName = event.lead?.company_name;
+
+  if (!companyName) {
+    return res.json({ status: 'ignored', reason: 'no company' });
+  }
+
+  // Find all leads from this company
+  const leads = await findLeadsByCompany(companyName);
+
+  // Stop all of them (except the one who replied, they're already stopped)
+  for (const lead of leads) {
+    if (lead.email !== leadEmail) {
+      await stopLead(lead.email);
+    }
+  }
+
+  res.json({ status: 'ok', stopped: leads.length - 1 });
+});
+
+// Instantly's API doesn't let you filter by company_name server-side.
+// The search param only works on name/email. So we fetch all leads
+// and filter client-side. For large campaigns, you'd want to cache
+// this or build your own company->leads index.
+async function findLeadsByCompany(companyName) {
+  const leads = [];
+  let cursor = null;
+
+  do {
+    const resp = await fetch('https://api.instantly.ai/api/v2/leads/list', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ campaign: CAMPAIGN_ID, starting_after: cursor })
+    });
+    const data = await resp.json();
+    leads.push(...data.items);
+    cursor = data.next_starting_after;
+  } while (cursor);
+
+  return leads.filter(lead => lead.company_name === companyName);
+}
+
+async function stopLead(email) {
+  await fetch('https://api.instantly.ai/api/v2/leads/update-interest-status', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lead_email: email, interest_value: -1 })
+  });
+}
+
+app.listen(3000);
+```
+
+You can host this anywhere that can receive HTTP requests. I used a cheap VPS with Docker behind Caddy for SSL. Other options include Cloudflare Workers, Railway, Render, AWS Lambda, or Vercel. The server is stateless, so any hosting that can run Node.js will work.
+
+## Someone Please Build This
+
+This solution works, but it's more complex than it should be. The fact that I had to build a webhook server to get org-level behavior is absurd. This should be a checkbox in every B2B email tool.
+
+What I actually want is to define groups of contacts by company, toggle "stop group on reply" as a campaign setting, and have the email tool handle it without webhooks.
+
+If you're building email tools, please add this.
