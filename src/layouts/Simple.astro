@@ -119,7 +119,7 @@ const currentPath = Astro.url.pathname;
       ahrefs_analytics_script.src = "https://analytics.ahrefs.com/analytics.js";
       ahrefs_analytics_script.setAttribute(
         "data-key",
-        "FnaRYWXDrr92Pn1jXqqRAQ"
+        "FnaRYWXDrr92Pn1jXqqRAQ",
       );
       document
         .getElementsByTagName("head")[0]
@@ -134,11 +134,7 @@ const currentPath = Astro.url.pathname;
           <li><a href="/posts/">Posts</a></li>
           <li><a href="/rss.xml">RSS Feed</a></li>
           <li>
-            <a
-              href="https://skeptrune.substack.com/"
-              target="_blank"
-              rel="noopener noreferrer">Subscribe</a
-            >
+            <a id="subscribe-link" href="#" role="button">Subscribe</a>
           </li>
         </ul>
         <ul>
@@ -190,6 +186,19 @@ const currentPath = Astro.url.pathname;
         </nav>
       </footer>
     </header>
+
+    <dialog id="subscribe-modal">
+      <article>
+        <iframe
+          src="https://skeptrune.substack.com/embed"
+          width="100%"
+          height="320"
+          style="border: 1px solid #EEE; background: white;"
+          frameborder="0"
+          scrolling="no"
+          loading="lazy"></iframe>
+      </article>
+    </dialog>
   </body>
 </html>
 
@@ -216,7 +225,7 @@ const currentPath = Astro.url.pathname;
       applyTheme(savedTheme);
     } else {
       const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
+        "(prefers-color-scheme: dark)",
       ).matches;
       applyTheme(prefersDark ? "dark" : "light");
     }
@@ -241,11 +250,11 @@ const currentPath = Astro.url.pathname;
       document.documentElement.setAttribute("data-theme", savedTheme);
     } else {
       const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
+        "(prefers-color-scheme: dark)",
       ).matches;
       document.documentElement.setAttribute(
         "data-theme",
-        prefersDark ? "dark" : "light"
+        prefersDark ? "dark" : "light",
       );
     }
   })();
@@ -253,6 +262,35 @@ const currentPath = Astro.url.pathname;
   document.addEventListener("DOMContentLoaded", handleThemeToggle);
   document.addEventListener("astro:after-swap", () => handleThemeToggle());
   document.addEventListener("astro:page-load", () => handleThemeToggle());
+</script>
+
+<script>
+  const setupSubscribeModal = () => {
+    const link = document.getElementById("subscribe-link");
+    const modal = document.getElementById(
+      "subscribe-modal",
+    ) as HTMLDialogElement | null;
+    const closeBtn = document.getElementById("subscribe-modal-close");
+
+    link?.addEventListener("click", (e) => {
+      e.preventDefault();
+      modal?.showModal();
+    });
+
+    closeBtn?.addEventListener("click", () => {
+      modal?.close();
+    });
+
+    modal?.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.close();
+      }
+    });
+  };
+
+  document.addEventListener("DOMContentLoaded", setupSubscribeModal);
+  document.addEventListener("astro:after-swap", setupSubscribeModal);
+  document.addEventListener("astro:page-load", setupSubscribeModal);
 </script>
 
 <style>
@@ -266,6 +304,56 @@ const currentPath = Astro.url.pathname;
     h5,
     h6 {
       font-family: var(--font-lora);
+    }
+  }
+
+  #subscribe-modal {
+    max-width: 520px;
+    width: 90%;
+    border-radius: 8px;
+    padding: 0;
+    border: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: fit-content;
+    margin: 0;
+
+    @media (min-width: 56rem) {
+      /* Center over the max-w-4xl (56rem) content area */
+      left: calc(56rem / 2 + 2rem);
+    }
+
+    &::backdrop {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    article {
+      margin: 0;
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-direction: row-reverse;
+
+        h3 {
+          margin: 0;
+        }
+
+        button {
+          all: unset;
+          cursor: pointer;
+          font-size: 1.5rem;
+          line-height: 1;
+          padding: 0.25rem;
+
+          &::before {
+            content: "\00d7";
+          }
+        }
+      }
     }
   }
 </style>
