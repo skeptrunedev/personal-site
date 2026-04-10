@@ -89,6 +89,10 @@ html {
       @apply list-disc pl-8 my-4 space-y-2;
     }
 
+    ol {
+      @apply list-decimal pl-8 my-4 space-y-2;
+    }
+
     pre {
       @apply p-4 rounded-md;
     }
