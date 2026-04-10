@@ -2,6 +2,11 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    if (url.hostname === "skeptrune.com") {
+      url.hostname = "www.skeptrune.com";
+      return Response.redirect(url.toString(), 301);
+    }
+
     const redirects = {
       "/posts/git-worktrees-with-AI/": "/posts/git-worktrees-agents-and-tmux/",
       "/posts/making-sites-accessible-for-agents/":
