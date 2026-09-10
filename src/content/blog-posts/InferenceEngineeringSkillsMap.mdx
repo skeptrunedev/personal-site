@@ -1,0 +1,89 @@
+---
+title: "The Inference Engineering Skills Map"
+slug: inference-engineering-skills-map
+summary: I made the switch from B2B SaaS web development to inference about a month ago and wanted to share my learnings for others that might be interested in doing a similar thing.
+author: Nick Khami
+createdAt: 2026-09-10T16:33:04.000Z
+updatedAt: 2026-09-10T16:33:04.000Z
+isDraft: false
+isFeatured: true
+displaySummary: false
+displayCoverImage: false
+categories:
+  - ai
+  - infrastructure
+---
+
+I made the switch from B2B SaaS web development to inference about a month ago and wanted to share my learnings for others that might be interested in doing a similar thing.
+
+After all, inference may very well be the last large market we ever see, [spending on ai is now larger than global investment in oil & gas](https://x.com/IEA/status/2097694114015858821).
+
+This post is titled "inference *engineering*" instead of "inference *science*" for a reason. From an engineering perspective, I feel like inference is similar to the B2B SaaS world I'm coming from where you are mostly stitching together APIs. Very little net-new code is required. Really, you just have to get three categories of services running and tuned:
+
+```plaintext
+inference engineering
+|
++-- coordinate the work (routing)
+|   Dynamo / llm-d
+|   routing, scheduling, and scaling
+|
++-- run the model
+|   vLLM / SGLang
+|   prompt processing, token generation,
+|   batching, and GPU execution
+|
++-- reuse previous work
+    HiCache / LMCache / Mooncake
+    prefix caching across GPU memory,
+    CPU memory, and NVMe storage
+```
+
+Frontier LLMs like fable, kimi, and astra still suck at this so, unfortunately, you do have to understand them to a reasonable extent if you want to get things right. It's simple tho, if you were previously able to learn docker or react then you can certainly learn this.
+
+## Coordinate the work (routing and proxying)
+
+Similar to replicas for a REST API on EC2 instances, you will have replicas of a model running on GPU servers when doing inference. Each replica is known as a "worker".
+
+Naively, you would assume that sending requests evenly across all workers is the right approach, but unlike REST APIs, inference requests vary in uncached token length and therefore require more intelligent load balancing.
+
+There are two open services out there that provide primitives for doing this coordination: [Nvidia Dynamo](https://www.nvidia.com/en-us/ai/dynamo/) and [llm-d](https://llm-d.ai/). Dynamo is newer and more recommended, but many older stacks are still reliant on llm-d.
+
+The fastest way to learn them is to deploy them in production with whatever GPUs you can get your hands on. Being familiar with this part of the stack will allow you to build intuition on load balancing, queues, and capacity ratings. I could go into several paragraphs more of detail, but I'll reserve that for a 202 post.
+
+Shoutout to [@KranenKyle](https://x.com/KranenKyle), [@flowpow123](https://x.com/flowpow123), [@athreesh](https://x.com/athreesh), and [@0xisand](https://x.com/0xishand) for their work on Dynamo, and [@smarterclayton](https://x.com/smarterclayton) and [@robertshaw21](https://x.com/robertshaw21) on llm-d, alongside both projects' contributors.
+
+## Run the model
+
+Once Dynamo or llm-d sends a request to a worker, that worker needs to actually run the model. There are two main inference engines for this: [vLLM](https://github.com/vllm-project/vllm) and [SGLang](https://github.com/sgl-project/sglang). These services load model weights onto GPUs and turn your input tokens into output tokens.
+
+Part of this is *batching*. The engines group work from multiple requests together to keep the GPU busy. Larger batches generally improve total throughput, but can mean fewer tokens per second for each individual session.
+
+Beyond batching, modern models are large and can also create memory constraints. Model size not only impacts how much GPU mem you need to have to load the model, it also impacts how much you need to hold state during inference. These engines have built in tools for [tensor parallelism](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/) which lets you split the model across multiple GPUs so they can share memory and computation.
+
+Final note, you will also hear people talk about "prefill" and "decode". This is another thing handled by the engine libraries. Prefill is processing the prompt (TTFT), decode is generating the answer (TPS). You can run these processes on the same workers or separate them onto different workers, which lets you tune their capacity independently but requires [moving state between them](https://docs.vllm.ai/en/latest/features/disagg_prefill/).
+
+Again, similar to the routing services, there is a lot to tune in the engines, but i won't go into that in this post.
+
+Shoutout to [@woosuk_k](https://x.com/woosuk_k), [@zhuohan123](https://x.com/zhuohan123), and [@simon_mo_](https://x.com/simon_mo_) for their work on vLLM, and [@lm_zheng](https://x.com/lm_zheng) and [@ying11231](https://x.com/ying11231) on SGLang, alongside both projects' contributors.
+
+## Reuse previous work
+
+Similar to caching in a web app, you don't want to repeat expensive work. The "KV cache" stores intermediate attention calculations. [Prefix caching](https://docs.vllm.ai/en/latest/design/prefix_caching/) reuses them when requests start with the same tokens. The prefix matters tho, the same document after a different system prompt won't give you the same hit.
+
+GPU memory fills up with model weights and active requests, so keeping more KV cache means using three tiers:
+
+1. GPU memory for cache the model is actively using.
+2. CPU memory for more space to keep prefixes you might reuse soon.
+3. NVMe for larger, cheaper capacity with slower retrieval.
+
+This is *hierarchical caching*. Cached data gets loaded back onto the GPU when needed. You want to retain useful work, but fetching it has to be faster than recomputing it.
+
+[HiCache](https://www.lmsys.org/blog/2025-09-10-sglang-hicache/), [LMCache](https://docs.lmcache.ai/), and [Mooncake](https://github.com/kvcache-ai/Mooncake) help with this. Their features overlap and some work together. Learn how your stack decides what stays in each tier and when it moves.
+
+I think caching is one of the hardest parts to get right, but avoiding repeated computation can make a huge difference to cost.
+
+Shoutout to [@Zhiqiang_Xie](https://x.com/Zhiqiang_Xie) for his work on HiCache, [@JunchenJiang](https://x.com/JunchenJiang) and [@this_will_echo](https://x.com/this_will_echo) on LMCache, and [@TengMa3577](https://x.com/TengMa3577) on Mooncake, alongside the contributors connecting these systems.
+
+## Where to start
+
+If you're coming from web development like me, hopefully this makes inference feel a little more approachable. You don't have to understand every CUDA kernel to get started. Get a model running, send it some traffic, and work through these layers as you run into problems.
