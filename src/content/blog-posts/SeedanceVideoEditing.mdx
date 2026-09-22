@@ -1,12 +1,12 @@
 ---
-title: "How I made Garry Tan and Paul Graham perform Hotel Lobby"
+title: "Making Palmer Luckey and Paul Graham perform Hotel Lobby"
 slug: seedance-video-character-swap
 summary: "The source clip, six reference photos, prompt and API settings I used to replace two people in a video with Seedance 2.5."
 author: Nick Khami
 createdAt: 2026-09-21T23:00:00-07:00
 updatedAt: 2026-09-21T23:00:00-07:00
 coverImage: src/assets/images/blog-posts/SeedanceVideoEditing/og-wide.jpg
-coverImageAlt: "AI generated Garry Tan on the left and Paul Graham on the right, shown head to toe with Paul's polo, shorts and sandals visible"
+coverImageAlt: "AI character edit with Palmer Luckey on the left and Paul Graham on the right, with their shorts and sandals visible"
 displayCoverImage: false
 displaySummary: false
 isDraft: true
@@ -22,15 +22,14 @@ import ResultVideo from "../../components/blog/SeedanceVideoEditing/ResultVideo.
 import sourceFraming from "../../assets/images/blog-posts/SeedanceVideoEditing/source-framing.jpg";
 import sourceWide from "../../assets/images/blog-posts/SeedanceVideoEditing/source-wide.jpg";
 import generatedWide from "../../assets/images/blog-posts/SeedanceVideoEditing/generated-wide.jpg";
-import generatedCloseup from "../../assets/images/blog-posts/SeedanceVideoEditing/generated-closeup.jpg";
 import apiScreenshot from "../../assets/images/blog-posts/SeedanceVideoEditing/reapi-edit-settings.png";
 import fullPromptUrl from "../../assets/images/blog-posts/SeedanceVideoEditing/submitted-prompt.txt?url";
 
-I wanted Garry Tan and Paul Graham to perform Hotel Lobby, with Garry on the left and Paul on the right. Paul had to be wearing his polo, shorts and sandals. The movement, camera cuts and orange studio should come from the original performance.
+I wanted Palmer Luckey and Paul Graham to perform Hotel Lobby, with Palmer on the left and Paul on the right. Palmer had to be in a Hawaiian shirt, shorts and flip flops. Paul had to be wearing his polo, cargo shorts and sandals. The movement, camera cuts and orange studio should come from the original performance.
 
 I used Seedance 2.5 through [reAPI](https://reapi.ai/models/seedance-2-5). The useful part of the workflow was being specific about what each input controlled: the video supplied the performance, and the photos supplied the people and their clothes.
 
-Here is the result. It got the positions and overall outfits, but it kept jewelry I asked it to remove and missed the cargo pockets. Those misses are visible below too.
+The important checks are the faces, the left and right assignments, the clothes and the original performance. I also asked for no jewelry on either person.
 
 <ResultVideo />
 
@@ -65,21 +64,25 @@ These crop coordinates are specific to that 4K source. For another video, choose
 
 ## 2. Give each person face and outfit references
 
-A good portrait tells the model what someone's face looks like. It does not tell it what shoes to put on them. I collected multiple face views and a wardrobe reference for each person, then told the model how to use each photo.
+A good portrait tells the model what someone's face looks like. It does not tell it what shoes to put on them. I collected full body photos with visible footwear alongside facial references, then told the model how to use each photo.
 
 These are the six actual images I submitted, in request order. Click any image to inspect it at full size.
 
-### Garry: images 1, 2 and 3
+### Palmer: images 1, 2 and 3
 
-The first two photos show his face in different expressions. The third supplies the checked shirt, dark jeans and shoes. The stage lighting and wrist accessories in that photo are details I did not want copied.
+The first photo is the primary outfit reference: a red patterned Hawaiian shirt, khaki cargo shorts and dark thong flip flops. His full body and both feet are visible. The second is another full body view, useful for his build and footwear, but it shows a different shirt and black shorts. I explicitly told the model to ignore those clothing differences and follow Image 1.
 
-<ReferencePhotos person="garry" />
+The third photo supplies recent facial detail, including his wavy hair and pointed goatee. Its watch and clip microphone should not carry into the video.
+
+The second photo was originally 8,047 pixels wide. The API rejected it because reference dimensions must be between 300 and 6,000 pixels. I resized the entire photo to 6,000 pixels wide and kept both feet in frame. The rejected attempt used no credits.
+
+<ReferencePhotos person="palmer" />
 
 ### Paul: images 4, 5 and 6
 
 Paul is on the left in Image 4, but he belongs on the right in the video. That distinction needs to be in the prompt. Image 5 is older, so I used it for facial detail while asking the model to keep his gray hair and appearance from Image 4.
 
-Image 6 is the important wardrobe photo. Paul is standing at the far right, wearing a pale polo, gray shorts and brown sandals. I also asked for cargo pockets, even though that photo does not clearly show them. The generated shorts ended up looking like the photo. Next time, I would find a reference that visibly includes the pockets instead of relying on that instruction alone.
+Image 6 is the important wardrobe photo. Paul is standing at the far right, wearing a pale polo, gray shorts and brown sandals. I also asked for visible cargo pockets, even though that photo does not clearly show them. That makes the pockets a detail to check in the output, rather than something the reference already establishes.
 
 <ReferencePhotos person="paul" />
 
@@ -102,10 +105,14 @@ Here is a shorter version of my prompt. The image numbers refer to the order in 
 ```text
 Edit the entire source video @Video1.
 
-Replace the viewer's LEFT performer with Garry Tan.
-Use @Image1 and @Image2 for his face, and @Image3 for
-his checked shirt, dark jeans and black shoes.
-Keep his glasses, hair and facial hair consistent.
+Replace the viewer's LEFT performer with Palmer Luckey.
+Use @Image1 as his primary full body and outfit reference:
+red patterned Hawaiian shirt, khaki cargo shorts and
+dark thong flip flops. Keep his bare legs and toes visible.
+Use @Image2 for build and footwear only; ignore its
+different shirt and black shorts. Use @Image3 for recent
+facial detail. Keep his wavy hair and pointed goatee.
+No eyeglasses, socks or closed shoes.
 
 Replace the viewer's RIGHT performer with Paul Graham.
 Paul is the man on the LEFT in @Image4, the closeup
@@ -185,19 +192,17 @@ curl --fail --location --silent --show-error \
   -o generated.mp4
 ```
 
-Here is the same moment in the source and the generated clip. The positions, scene and overall performance carried through. The timing was close, with some cuts differing by one frame, rather than an exact reproduction.
+Compare the source and generated clip at the same timestamp. Check the positions, scene, gestures and camera cuts, then inspect the faces and clothing through the turns.
 
 <Figure image={sourceWide} alt="Wide source frame showing both original performers at 18 seconds into the trimmed clip" caption="Source at 18 seconds into the trimmed clip." source="https://www.youtube.com/watch?v=x9yop0nYR9g" credit="COLORS" />
 
-<Figure image={generatedWide} alt="Wide generated frame with Garry on the left and Paul on the right, including his gray shorts and brown sandals" caption="Generated frame at the same timestamp. Paul has the polo, shorts and sandals, but the requested cargo pockets are missing." />
+<Figure image={generatedWide} alt="Generated comparison frame for Palmer on the left and Paul on the right" caption="Compare this generated frame with the source at the same timestamp, including the full outfits and footwear." />
 
 Watch every cut, the turns and the moments when hands pass near faces. Check that neither original performer comes back, the replacements keep their positions, and the outfits stay consistent. A successful API response only means that a video was produced.
 
-<Figure image={generatedCloseup} alt="Generated closeup showing rings and watches still present on both replacement characters" caption="A visible failure from this run: rings and wrist accessories survived despite explicit instructions to remove them." />
-
 ## 6. Restore the audio and export for X
 
-The model returned a 1664 × 1248 video for the `1080p` request. I exported a 1440 × 1080 H264 MP4, keeping the 4:3 frame and copying the audio from the trimmed source.
+For X, export a 1440 × 1080 H264 MP4, keeping the 4:3 frame and copying the audio from the trimmed source. Check the actual generated dimensions and duration before exporting.
 
 ```bash
 ffmpeg -i generated.mp4 -i source_trimmed.mp4 \
@@ -210,7 +215,7 @@ ffmpeg -i generated.mp4 -i source_trimmed.mp4 \
   final_1080p.mp4
 ```
 
-The two `-map` arguments select video from the generated file and audio from the original trimmed file. `-c:a copy` preserves that AAC audio without encoding it again. I kept the entire source audio rather than cutting it to the generated video's slightly shorter final frame.
+The two `-map` arguments select video from the generated file and audio from the original trimmed file. `-c:a copy` preserves that AAC audio without encoding it again. Compare the stream durations and check the end of the clip for any mismatch.
 
 Check the file before uploading:
 
@@ -223,6 +228,6 @@ ffprobe -v error \
 ffmpeg -v error -i final_1080p.mp4 -f null -
 ```
 
-For this export, the video is H264 at 1440 × 1080 and 24 fps, with AAC audio. The dimensions and bitrate fit [X's documented upload limits](https://help.x.com/en/using-x/x-videos). The second command decodes the file to catch errors that metadata alone would miss.
+The export settings target H264 at 1440 × 1080 with AAC audio. Check the resulting frame rate, dimensions and bitrate against [X's documented upload limits](https://help.x.com/en/using-x/x-videos). The second command decodes the file to catch errors that metadata alone would miss.
 
-The finished example at the top is a smaller web copy of that result. The reference photos, prompt and source framing are the parts to reuse when making your own version. If one detail is essential, like Paul's sandals, make it visible in the references and then check that it actually appears in the video.
+The reference photos, prompt and source framing are the parts to reuse when making your own version. If one detail is essential, like Palmer's flip flops or Paul's sandals, make it visible in the references and then check that it actually appears in the video.
