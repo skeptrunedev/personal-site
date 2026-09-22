@@ -33,12 +33,15 @@ const { entry, catFreqs } = Astro.props;
 const { Content } = await render(entry);
 
 const i18n = entry.data;
+const imageUrl = i18n.coverImage
+  ? new URL(i18n.coverImage.src, import.meta.env.DEV ? Astro.url.origin : SiteUrl).href
+  : undefined;
 ---
 
 <SimpleLayout
   title=`${i18n.title}`
   type="article"
-  imageUrl={i18n.coverImage ? `${SiteUrl}${i18n.coverImage.src}` : undefined}
+  imageUrl={imageUrl}
   imageWidth={i18n.coverImage?.width}
   imageHeight={i18n.coverImage?.height}
   imageAlt={i18n.coverImageAlt}

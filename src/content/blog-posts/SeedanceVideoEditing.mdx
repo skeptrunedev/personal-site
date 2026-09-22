@@ -112,8 +112,8 @@ Paul is the man on the LEFT in @Image4, the closeup
 subject in @Image5, and the standing man at the far
 RIGHT in @Image6. Ignore every other person.
 Use his gray haired appearance from @Image4 throughout.
-Dress him in the pale polo, gray cargo shorts and brown
-sandals shown in @Image6. Make the cargo pockets visible.
+Dress him in the pale polo, gray shorts and brown sandals
+shown in @Image6. Add visible cargo pockets to the shorts.
 
 The photos provide identity and wardrobe only.
 The video provides motion, expressions, gestures, timing,
@@ -155,9 +155,9 @@ curl --fail-with-body --silent --show-error \
   -H "Authorization: Bearer $REAPI_API_KEY" \
   -H 'Content-Type: application/json' \
   --data-binary @request.json \
-  -o submission.json
+  -o submission.json || exit 1
 
-TASK_ID="$(jq -er '.id' submission.json)"
+TASK_ID="$(jq -er '.id' submission.json)" || exit 1
 ```
 
 ## 5. Download the result and check the details
