@@ -6,7 +6,10 @@ import { getCollection, render } from "astro:content";
 import { SiteUrl } from "src/theme.config";
 
 export async function getStaticPaths() {
-  const allPosts = await getCollection("blogPosts");
+  const allPosts = await getCollection(
+    "blogPosts",
+    ({ data }) => import.meta.env.DEV || !data.isDraft,
+  );
   const catFreqs = allPosts.reduce(
     (acc, post) => {
       post.data.categories.forEach((cat: string) => {
@@ -36,6 +39,10 @@ const i18n = entry.data;
   title=`${i18n.title}`
   type="article"
   imageUrl={i18n.coverImage ? `${SiteUrl}${i18n.coverImage.src}` : undefined}
+  imageWidth={i18n.coverImage?.width}
+  imageHeight={i18n.coverImage?.height}
+  imageAlt={i18n.coverImageAlt}
+  noIndex={i18n.isDraft}
   description={i18n.summary}
   publishedTime={i18n.createdAt?.toISOString()}
   modifiedTime={i18n.updatedAt?.toISOString()}
@@ -43,6 +50,7 @@ const i18n = entry.data;
   primaryCategory={i18n.categories[0]}
 >
   <article>
+    {i18n.isDraft && <p role="note"><strong>Draft preview.</strong> This post is not published.</p>}
     <div class="flex flex-row items-center gap-2 mb-1!">
       {
         new Date(i18n.createdAt).toLocaleDateString("en-US", {
@@ -88,7 +96,7 @@ const i18n = entry.data;
         <div class="flex flex-col space-y-2 my-8">
           <Image
             src={i18n.coverImage}
-            alt="Cover image"
+            alt={i18n.coverImageAlt ?? "Cover image"}
             class="rounded-sm max-w-full"
           />
         </div>

@@ -14,6 +14,7 @@ const blogPosts = defineCollection({
       author: z.string().optional(),
       categories: z.array(z.string()),
       coverImage: image().optional(),
+      coverImageAlt: z.string().optional(),
       displayCoverImage: z.boolean().optional(),
       displaySummary: z.boolean().optional(),
       isFeatured: z.boolean().optional(),

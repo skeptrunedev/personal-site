@@ -1,0 +1,29 @@
+---
+import Figure from "./Figure.astro";
+import garryFront from "../../../assets/images/blog-posts/SeedanceVideoEditing/garry-frontal-reference.jpg";
+import garrySmile from "../../../assets/images/blog-posts/SeedanceVideoEditing/garry-smiling-reference.png";
+import garryOutfit from "../../../assets/images/blog-posts/SeedanceVideoEditing/garry-outfit-reference.jpg";
+import paulRecent from "../../../assets/images/blog-posts/SeedanceVideoEditing/paul-recent-reference.jpg";
+import paulFace from "../../../assets/images/blog-posts/SeedanceVideoEditing/paul-face-reference.jpg";
+import paulOutfit from "../../../assets/images/blog-posts/SeedanceVideoEditing/paul-outfit-reference.jpg";
+const { person } = Astro.props as { person: "garry" | "paul" };
+const references = person === "garry" ? [
+  { image: garryFront, alt: "Garry Tan facing the camera in glasses and a gray sweatshirt", caption: "Image 1. Garry's primary face reference. His eyes, hairline and facial hair are easy to see.", source: "https://www.businessinsider.com/how-y-combinator-founders-are-pitching-the-ai-boom-2025-12", credit: "Courtesy, via Business Insider" },
+  { image: garrySmile, alt: "Garry Tan smiling with his hand near his chin", caption: "Image 2. A smile and another angle. His hand covers part of his chin, so this supplements the first photo.", source: "https://designerfounders.com/garry-tan", credit: "Designer Founders" },
+  { image: garryOutfit, alt: "Garry Tan seated in a checked shirt, dark jeans and black shoes with white soles", caption: "Image 3. Garry's outfit and another face angle. One shoe is fully visible; this is a seated wardrobe reference.", source: "https://commons.wikimedia.org/wiki/File:Web_Summit_2018_-_Centre_Stage,_Day_1_-November_6_SD5_6949_(45700698642).jpg", credit: "Seb Daly / Web Summit / Sportsfile", license: "CC BY 2.0", licenseUrl: "https://creativecommons.org/licenses/by/2.0/" },
+] : [
+  { image: paulRecent, alt: "Paul Graham on the left beside Peter Mangan, wearing a blue shirt, tan shorts and sandals", caption: "Image 4. Paul is the man on the left in this photo. I used his gray hair and current appearance, while assigning him to the right in the video.", source: "https://www.linkedin.com/posts/peter-mangan-34b44871_y-combinator-turned-20-yesterday-heres-activity-7305569506913857537-ZcEY", credit: "Peter Mangan" },
+  { image: paulFace, alt: "A detailed older portrait of Paul Graham speaking into a microphone", caption: "Image 5. An older photo with clear facial detail. The prompt says to keep the age and hair from Image 4.", source: "https://www.flickr.com/photos/pragdave/173643703/", credit: "Dave Thomas", license: "CC BY 2.0", licenseUrl: "https://creativecommons.org/licenses/by/2.0/" },
+  { image: paulOutfit, alt: "Paul Graham standing at the far right of a YC room in a pale polo, gray shorts and brown sandals", caption: "Image 6. Paul is standing at the far right. This is the polo, shorts and sandals reference. Cargo pockets are not clearly visible here, which matters when assessing the result.", source: "https://commons.wikimedia.org/wiki/File:Paul_Graham_talking_about_Prototype_Day_at_Y_Combinator_Summer_2009.jpg", credit: "Kevin Hale", license: "CC BY SA 2.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0/" },
+];
+---
+
+<div class="references">
+  {references.map((reference) => <Figure {...reference} />)}
+</div>
+
+<style>
+  .references { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.25rem; align-items: start; }
+  .references :global(figure:last-child) { grid-column: 1 / -1; }
+  @media (max-width: 560px) { .references { grid-template-columns: 1fr; } }
+</style>

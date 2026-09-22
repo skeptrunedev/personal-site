@@ -1,0 +1,228 @@
+---
+title: "How I made Garry Tan and Paul Graham perform Hotel Lobby"
+slug: seedance-video-character-swap
+summary: "The source clip, six reference photos, prompt and API settings I used to replace two people in a video with Seedance 2.5."
+author: Nick Khami
+createdAt: 2026-09-21T23:00:00-07:00
+updatedAt: 2026-09-21T23:00:00-07:00
+coverImage: src/assets/images/blog-posts/SeedanceVideoEditing/og-wide.jpg
+coverImageAlt: "AI generated Garry Tan on the left and Paul Graham on the right, shown head to toe with Paul's polo, shorts and sandals visible"
+displayCoverImage: false
+displaySummary: false
+isDraft: true
+isFeatured: false
+categories:
+  - ai
+  - art
+---
+
+import Figure from "../../components/blog/SeedanceVideoEditing/Figure.astro";
+import ReferencePhotos from "../../components/blog/SeedanceVideoEditing/ReferencePhotos.astro";
+import ResultVideo from "../../components/blog/SeedanceVideoEditing/ResultVideo.astro";
+import sourceFraming from "../../assets/images/blog-posts/SeedanceVideoEditing/source-framing.jpg";
+import sourceWide from "../../assets/images/blog-posts/SeedanceVideoEditing/source-wide.jpg";
+import generatedWide from "../../assets/images/blog-posts/SeedanceVideoEditing/generated-wide.jpg";
+import generatedCloseup from "../../assets/images/blog-posts/SeedanceVideoEditing/generated-closeup.jpg";
+import apiScreenshot from "../../assets/images/blog-posts/SeedanceVideoEditing/reapi-edit-settings.png";
+import fullPromptUrl from "../../assets/images/blog-posts/SeedanceVideoEditing/submitted-prompt.txt?url";
+
+I wanted Garry Tan and Paul Graham to perform Hotel Lobby, with Garry on the left and Paul on the right. Paul had to be wearing his polo, shorts and sandals. The movement, camera cuts and orange studio should come from the original performance.
+
+I used Seedance 2.5 through [reAPI](https://reapi.ai/models/seedance-2-5). The useful part of the workflow was being specific about what each input controlled: the video supplied the performance, and the photos supplied the people and their clothes.
+
+Here is the result. It got the positions and overall outfits, but it kept jewelry I asked it to remove and missed the cargo pockets. Those misses are visible below too.
+
+<ResultVideo />
+
+## 1. Prepare the performance first
+
+I started with [Quavo and Takeoff's COLORS performance](https://www.youtube.com/watch?v=x9yop0nYR9g), then matched the section and framing of [this character replacement edit on X](https://x.com/BasedDaedalus/status/2101682062105133438). Starting with an existing performance gives the model gestures, expressions, interactions and camera movement to follow.
+
+I downloaded the original with [yt-dlp](https://github.com/yt-dlp/yt-dlp), without its attached YouTube playlist. You will also need FFmpeg and jq for the commands in this post.
+
+```bash
+yt-dlp --no-playlist \
+  -f 'bv[width=3840][height=2160]+ba' \
+  --merge-output-format mp4 \
+  -o 'source.%(ext)s' \
+  'https://www.youtube.com/watch?v=x9yop0nYR9g'
+```
+
+For this clip, the section begins at 14.60575 seconds and lasts about 29.09 seconds. I cropped the 3840 × 2160 source to 2880 × 2160, offset 606 pixels from the left. That gives a 4:3 frame with the performers and microphone positioned correctly.
+
+```bash
+ffmpeg -ss 14.60575 -i source.mp4 \
+  -t 29.094603 \
+  -vf 'crop=2880:2160:606:0,fps=24:start_time=0,trim=end_frame=698,setsar=1' \
+  -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p \
+  -c:a aac -b:a 192k \
+  -movflags +faststart source_trimmed.mp4
+```
+
+These crop coordinates are specific to that 4K source. For another video, choose your own section and crop before submitting it. Keep the audio in the trimmed file, since you will use it again after generation.
+
+<Figure image={sourceFraming} alt="The cropped source performance with the striped shirt performer on the left and orange shirt performer on the right" caption="The prepared source near the beginning. This establishes the left and right assignments, microphone placement and framing." source="https://www.youtube.com/watch?v=x9yop0nYR9g" credit="COLORS" />
+
+## 2. Give each person face and outfit references
+
+A good portrait tells the model what someone's face looks like. It does not tell it what shoes to put on them. I collected multiple face views and a wardrobe reference for each person, then told the model how to use each photo.
+
+These are the six actual images I submitted, in request order. Click any image to inspect it at full size.
+
+### Garry: images 1, 2 and 3
+
+The first two photos show his face in different expressions. The third supplies the checked shirt, dark jeans and shoes. The stage lighting and wrist accessories in that photo are details I did not want copied.
+
+<ReferencePhotos person="garry" />
+
+### Paul: images 4, 5 and 6
+
+Paul is on the left in Image 4, but he belongs on the right in the video. That distinction needs to be in the prompt. Image 5 is older, so I used it for facial detail while asking the model to keep his gray hair and appearance from Image 4.
+
+Image 6 is the important wardrobe photo. Paul is standing at the far right, wearing a pale polo, gray shorts and brown sandals. I also asked for cargo pockets, even though that photo does not clearly show them. The generated shorts ended up looking like the photo. Next time, I would find a reference that visibly includes the pockets instead of relying on that instruction alone.
+
+<ReferencePhotos person="paul" />
+
+## 3. Set up a video edit
+
+I used the standard Seedance 2.5 model, `doubao-seedance-2.5-face`, with `1080p` output and `omni_reference_task_type` set to `edit`.
+
+The [reAPI documentation](https://reapi.ai/docs/seedance-2-5) requires `duration: -1` and `size: "adaptive"` for this editing mode. Automatic duration also requires enough account credit for the maximum reservation, even if the source is shorter. I kept the default moderation settings and set `generate_audio: false`, since I wanted to restore the original music afterward.
+
+<Figure image={apiScreenshot} alt="Screenshot of reAPI's Seedance 2.5 documentation showing the task types and requirements for video editing" caption="The provider's edit mode requirements. This is a screenshot of the documentation, not a generation dashboard." source="https://reapi.ai/docs/seedance-2-5#task-types-and-constraints" credit="reAPI documentation" />
+
+Create an [API key](https://reapi.ai/settings/apikeys) and put it in your local `REAPI_API_KEY` environment variable. Upload `source_trimmed.mp4` and the six photos to storage that gives you directly accessible HTTPS file URLs. A link to a photo viewer page is not the same as a link to the image bytes. Temporary signed download URLs work as long as they remain valid for the job.
+
+Save the six image URLs as a JSON array in `image_urls.json`, in the order shown above, and set `SOURCE_URL` to your uploaded trimmed MP4. Keep the key and private URLs out of screenshots and published examples.
+
+## 4. Map the people, then describe what stays the same
+
+Here is a shorter version of my prompt. The image numbers refer to the order in `image_urls.json`.
+
+```text
+Edit the entire source video @Video1.
+
+Replace the viewer's LEFT performer with Garry Tan.
+Use @Image1 and @Image2 for his face, and @Image3 for
+his checked shirt, dark jeans and black shoes.
+Keep his glasses, hair and facial hair consistent.
+
+Replace the viewer's RIGHT performer with Paul Graham.
+Paul is the man on the LEFT in @Image4, the closeup
+subject in @Image5, and the standing man at the far
+RIGHT in @Image6. Ignore every other person.
+Use his gray haired appearance from @Image4 throughout.
+Dress him in the pale polo, gray cargo shorts and brown
+sandals shown in @Image6. Make the cargo pockets visible.
+
+The photos provide identity and wardrobe only.
+The video provides motion, expressions, gestures, timing,
+interactions, camera cuts, framing, lighting and background.
+Preserve the original performance as faithfully as possible.
+Do not swap positions or invent new movement or scene elements.
+Keep the orange studio and hanging microphone.
+Remove all rings, watches, bracelets, necklaces and earrings.
+```
+
+<a href={fullPromptUrl} download>Download the complete prompt used for this run.</a> Save whichever version you use as `prompt.txt`.
+
+The position in a reference photograph and the position in the output are separate instructions. This matters when a reference has two people in it. Also name the specific clothes, rather than assuming the model will know which photo should determine the outfit.
+
+Build the request with jq so multiline prompt text is escaped correctly:
+
+```bash
+jq -n \
+  --rawfile prompt prompt.txt \
+  --arg source "$SOURCE_URL" \
+  --slurpfile images image_urls.json \
+  '{
+    model: "doubao-seedance-2.5-face",
+    prompt: $prompt,
+    image_urls: $images[0],
+    video_urls: [$source],
+    omni_reference_task_type: "edit",
+    duration: -1,
+    size: "adaptive",
+    resolution: "1080p",
+    bitrate_mode: "default",
+    generate_audio: false,
+    output_format: "mp4",
+    watermark: false
+  }' > request.json
+
+curl --fail-with-body --silent --show-error \
+  https://reapi.ai/api/v1/videos/generations \
+  -H "Authorization: Bearer $REAPI_API_KEY" \
+  -H 'Content-Type: application/json' \
+  --data-binary @request.json \
+  -o submission.json
+
+TASK_ID="$(jq -er '.id' submission.json)"
+```
+
+## 5. Download the result and check the details
+
+The submission returns a task ID. Keep polling that task until it completes. If a submission has an uncertain network result, check whether it created a task before submitting again, since another POST can create another paid render.
+
+```bash
+while true; do
+  curl --fail-with-body --silent --show-error \
+    "https://reapi.ai/api/v1/tasks/$TASK_ID" \
+    -H "Authorization: Bearer $REAPI_API_KEY" \
+    -o task.json || exit 1
+
+  status="$(jq -er '.status' task.json)" || exit 1
+  case "$status" in
+    completed) break ;;
+    failed) jq '.error' task.json; exit 1 ;;
+    processing) sleep 5 ;;
+    *) printf 'Unexpected task status\n' >&2; exit 1 ;;
+  esac
+done
+
+curl --fail --location --silent --show-error \
+  "$(jq -er '.output.video_urls[0]' task.json)" \
+  -o generated.mp4
+```
+
+Here is the same moment in the source and the generated clip. The positions, scene and overall performance carried through. The timing was close, with some cuts differing by one frame, rather than an exact reproduction.
+
+<Figure image={sourceWide} alt="Wide source frame showing both original performers at 18 seconds into the trimmed clip" caption="Source at 18 seconds into the trimmed clip." source="https://www.youtube.com/watch?v=x9yop0nYR9g" credit="COLORS" />
+
+<Figure image={generatedWide} alt="Wide generated frame with Garry on the left and Paul on the right, including his gray shorts and brown sandals" caption="Generated frame at the same timestamp. Paul has the polo, shorts and sandals, but the requested cargo pockets are missing." />
+
+Watch every cut, the turns and the moments when hands pass near faces. Check that neither original performer comes back, the replacements keep their positions, and the outfits stay consistent. A successful API response only means that a video was produced.
+
+<Figure image={generatedCloseup} alt="Generated closeup showing rings and watches still present on both replacement characters" caption="A visible failure from this run: rings and wrist accessories survived despite explicit instructions to remove them." />
+
+## 6. Restore the audio and export for X
+
+The model returned a 1664 × 1248 video for the `1080p` request. I exported a 1440 × 1080 H264 MP4, keeping the 4:3 frame and copying the audio from the trimmed source.
+
+```bash
+ffmpeg -i generated.mp4 -i source_trimmed.mp4 \
+  -map 0:v:0 -map 1:a:0 \
+  -vf 'scale=1440:1080:flags=lanczos,setsar=1' \
+  -c:v libx264 -preset slow -crf 16 \
+  -profile:v high -level:v 4.1 -pix_fmt yuv420p \
+  -maxrate 20M -bufsize 40M -g 48 \
+  -c:a copy -movflags +faststart \
+  final_1080p.mp4
+```
+
+The two `-map` arguments select video from the generated file and audio from the original trimmed file. `-c:a copy` preserves that AAC audio without encoding it again. I kept the entire source audio rather than cutting it to the generated video's slightly shorter final frame.
+
+Check the file before uploading:
+
+```bash
+ffprobe -v error \
+  -show_entries stream=codec_name,width,height,r_frame_rate,duration \
+  -show_entries format=duration \
+  -of json final_1080p.mp4
+
+ffmpeg -v error -i final_1080p.mp4 -f null -
+```
+
+For this export, the video is H264 at 1440 × 1080 and 24 fps, with AAC audio. The dimensions and bitrate fit [X's documented upload limits](https://help.x.com/en/using-x/x-videos). The second command decodes the file to catch errors that metadata alone would miss.
+
+The finished example at the top is a smaller web copy of that result. The reference photos, prompt and source framing are the parts to reuse when making your own version. If one detail is essential, like Paul's sandals, make it visible in the references and then check that it actually appears in the video.
