@@ -1,12 +1,12 @@
 ---
-title: "Making Palmer Luckey and Paul Graham perform Hotel Lobby"
+title: "How I made Palmer Luckey and Paul Graham perform Hotel Lobby"
 slug: seedance-video-character-swap
 summary: "The source clip, six reference photos, prompt and API settings I used to replace two people in a video with Seedance 2.5."
 author: Nick Khami
 createdAt: 2026-09-21T23:00:00-07:00
-updatedAt: 2026-09-21T23:00:00-07:00
+updatedAt: 2026-09-22T00:56:30-07:00
 coverImage: src/assets/images/blog-posts/SeedanceVideoEditing/og-wide.jpg
-coverImageAlt: "AI character edit with Palmer Luckey on the left and Paul Graham on the right, with their shorts and sandals visible"
+coverImageAlt: "AI generated Palmer Luckey on the left in a red Hawaiian shirt, khaki shorts and flip flops, and Paul Graham on the right in a polo, gray shorts and sandals, both shown head to toe"
 displayCoverImage: false
 displaySummary: false
 isDraft: true
@@ -22,6 +22,7 @@ import ResultVideo from "../../components/blog/SeedanceVideoEditing/ResultVideo.
 import sourceFraming from "../../assets/images/blog-posts/SeedanceVideoEditing/source-framing.jpg";
 import sourceWide from "../../assets/images/blog-posts/SeedanceVideoEditing/source-wide.jpg";
 import generatedWide from "../../assets/images/blog-posts/SeedanceVideoEditing/generated-wide.jpg";
+import generatedCloseup from "../../assets/images/blog-posts/SeedanceVideoEditing/generated-closeup.jpg";
 import apiScreenshot from "../../assets/images/blog-posts/SeedanceVideoEditing/reapi-edit-settings.png";
 import fullPromptUrl from "../../assets/images/blog-posts/SeedanceVideoEditing/submitted-prompt.txt?url";
 
@@ -29,7 +30,7 @@ I wanted Palmer Luckey and Paul Graham to perform Hotel Lobby, with Palmer on th
 
 I used Seedance 2.5 through [reAPI](https://reapi.ai/models/seedance-2-5). The useful part of the workflow was being specific about what each input controlled: the video supplied the performance, and the photos supplied the people and their clothes.
 
-The important checks are the faces, the left and right assignments, the clothes and the original performance. I also asked for no jewelry on either person.
+Here is the result. Palmer's outfit and the left and right assignments carried through. The model still kept rings and Paul's watch, and missed Paul's cargo pockets. Those misses are visible below too.
 
 <ResultVideo />
 
@@ -196,13 +197,15 @@ Compare the source and generated clip at the same timestamp. Check the positions
 
 <Figure image={sourceWide} alt="Wide source frame showing both original performers at 18 seconds into the trimmed clip" caption="Source at 18 seconds into the trimmed clip." source="https://www.youtube.com/watch?v=x9yop0nYR9g" credit="COLORS" />
 
-<Figure image={generatedWide} alt="Generated comparison frame for Palmer on the left and Paul on the right" caption="Compare this generated frame with the source at the same timestamp, including the full outfits and footwear." />
+<Figure image={generatedWide} alt="Wide generated frame with Palmer on the left in his red Hawaiian shirt, khaki cargo shorts and flip flops, and Paul on the right in a pale polo, gray shorts and brown sandals" caption="Generated frame at 18 seconds. Palmer has the requested outfit, including visible cargo pockets and flip flops. Paul's polo and sandals carried through, but his gray shorts lack the requested cargo pockets." />
 
 Watch every cut, the turns and the moments when hands pass near faces. Check that neither original performer comes back, the replacements keep their positions, and the outfits stay consistent. A successful API response only means that a video was produced.
 
+<Figure image={generatedCloseup} alt="Generated closeup showing a ring on Palmer's hand and rings and a watch on Paul" caption="The no jewelry instruction failed: rings remain on both people, and Paul still wears a watch. His hair also came out darker than the recent reference." />
+
 ## 6. Restore the audio and export for X
 
-For X, export a 1440 × 1080 H264 MP4, keeping the 4:3 frame and copying the audio from the trimmed source. Check the actual generated dimensions and duration before exporting.
+The model returned a 1664 × 1248 video for the `1080p` request. I exported a 1440 × 1080 H264 MP4 for X, keeping the 4:3 frame and copying the audio from the trimmed source.
 
 ```bash
 ffmpeg -i generated.mp4 -i source_trimmed.mp4 \
