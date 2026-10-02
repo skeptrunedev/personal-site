@@ -13,13 +13,15 @@ categories:
   - infrastructure
 ---
 
-{/* TODO(nick): replace this opening with your own story. What was the call you didn't want to make? */}
+Now that I'm no longer a founder, I finally have a little more time to take care of my health. It's been about a year, but it feels like I'm only now getting the energy for stuff like this. Catching up meant booking a bunch of appointments with dermatologists and other kinds of medical professionals, then getting a bunch of prescriptions sorted out. It was really time-consuming and hard to get it all done.
 
-My coding agent can refactor a codebase, file a PR, and deploy it while I get coffee. But the moment a chore needs a phone call, it hands the chore back to me. Booking the dentist, cancelling Spectrum, getting past the Experian phone tree. Agents are great at everything on a screen and useless at the thing that still runs half of the real world: a phone line with a person or a phone menu on the other end.
+Most of my job has me in a terminal. I use the terminal for sending emails, for coding, for replying to people on Slack. It's my productivity hub. So naturally I thought: I'm sick of making all these phone calls to get everything arranged, why can't I have AI do it from my terminal?
+
+I went looking for a product and there was nothing that just worked out of the box. There are a lot of AI voice developer tools, but they all require a lot of configuration before they do anything useful. I wanted something ready to go, pre-built for the use case of a personal voice assistant you can use from your terminal.
 
 So I built [call4me](https://call4.me). It gives any agent (Claude Code, Codex, Claude Desktop, ChatGPT) one new tool: make a phone call. It went from first commit to launch in five days, and 230 commits later it works well enough that I use it for my own calls.
 
-This post covers why it works the way it does, and then goes deep on the architecture: how Telnyx and OpenAI's GPT-Live fit together, why there's a second model sitting behind the voice, and what it took to get an AI through phone menus.
+I think it's a durable, sharp category. There's so much room to add to what a coding agent can do with an MCP server, and to provide value to people right now. So the rest of this post breaks down how it works: how Telnyx and OpenAI's GPT-Live fit together, why there's a second model sitting behind the voice, and what it took to get an AI through phone menus.
 
 ## What it does
 
