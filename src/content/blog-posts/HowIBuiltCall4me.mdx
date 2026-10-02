@@ -3,12 +3,12 @@ title: "I gave Claude Code a phone using GPT-Live. Here's exactly how it works"
 slug: how-i-built-call4me
 summary: "Why I gave Claude Code the ability to make real phone calls, and how it works under the hood: Telnyx, GPT-Live, a back office model, and a lot of fighting with phone menus."
 author: Nick Khami
-createdAt: 2026-10-02T12:00:00-07:00
-updatedAt: 2026-10-02T12:00:00-07:00
+createdAt: 2026-10-02T07:33:10-07:00
+updatedAt: 2026-10-02T07:33:10-07:00
 coverImage: src/assets/images/blog-posts/HowIBuiltCall4me/og.jpg
 coverImageAlt: "Claude Code open in a terminal under the heading call4.me > ask your agent, the first frame of the call4me launch video"
 displayCoverImage: false
-isDraft: true
+isDraft: false
 isFeatured: false
 displaySummary: false
 categories:
@@ -20,7 +20,7 @@ I went to get a skin analysis done thru [@layersbio](https://x.com/layersbio) an
 
 ![My tweet from Sep 25: "i'm trying to give my agents a phone to book medical appointments for me. who's the best provider for this?" followed by "i want something that just works"](../../assets/images/blog-posts/HowIBuiltCall4me/original-tweet.png)
 
-To my immense dissapointment, there wasn't anyone who had built this yet. I got a few replies from devtool style companies that had made voice AI APIs, but I really just wanted a managed solution and couldn't find one. I figured that there were enough other people similar to me who use a lot of agents but didn't like making phone calls that I decided it was actually worth building the tool myself and launched [call4me](https://call4.me). Based on the revenue, I feel like that instinct was correct!
+To my immense disappointment, there wasn't anyone who had built this yet. I got a few replies from devtool style companies that had made voice AI APIs, but I really just wanted a managed solution and couldn't find one. I figured that there were enough other people similar to me who use a lot of agents but didn't like making phone calls that I decided it was actually worth building the tool myself and launched [call4me](https://call4.me). Based on the revenue, I feel like that instinct was correct!
 
 ![Stripe dashboard for call4me's first week: $610.00 gross volume, $215.00 MRR and $574.19 net volume from Sep 26 to Oct 2](../../assets/images/blog-posts/HowIBuiltCall4me/stripe-revenue.png)
 
@@ -151,8 +151,6 @@ Now my phone rings listen-only and I have to press 1 to join. If 30 seconds pass
 The voice model only speaks when it hears something. So when it asked me for a one-time code and was waiting on my answer, the line went dead. A Spectrum rep sat through 41 seconds of silence. Now, every 15 seconds or so, the caller says "sorry, still checking on that, one sec" until the answer arrives.
 
 ## What I'd tell someone building this
-
-{/* TODO(nick): your takeaways. Some candidates below, keep or cut. */}
 
 - **Skip every audio conversion you can.** Matching the carrier's codec end to end made the audio path the most boring part of the system, which is exactly what you want.
 - **Split the voice from the decisions.** A realtime model with tools will press the wrong button eventually. A realtime model that delegates to a reasoning model is much easier to control.
