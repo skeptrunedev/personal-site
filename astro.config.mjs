@@ -92,6 +92,7 @@ export default defineConfig({
     "/posts/git-worktrees-with-AI/": "/posts/git-worktrees-agents-and-tmux/",
     "/posts/posts/making-sites-accessible-for-agents/":
       "/posts/use-the-accept-header-to-serve-markdown-instead-of-html-to-llms/",
+    "/posts/how-i-built-call4me/": "/posts/stt-llm-tts-voice-stack-is-dead/",
   },
   experimental: {
     fonts: [

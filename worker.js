@@ -11,6 +11,8 @@ export default {
       "/posts/git-worktrees-with-AI/": "/posts/git-worktrees-agents-and-tmux/",
       "/posts/making-sites-accessible-for-agents/":
         "/posts/use-the-accept-header-to-serve-markdown-instead-of-html-to-llms/",
+      "/posts/how-i-built-call4me/": "/posts/stt-llm-tts-voice-stack-is-dead/",
+      "/posts/how-i-built-call4me": "/posts/stt-llm-tts-voice-stack-is-dead/",
     };
 
     if (redirects[url.pathname]) {
