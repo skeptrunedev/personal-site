@@ -59,6 +59,16 @@ There's no speech-to-text step, no text-to-speech step, and no resampling. Every
 
 One small detail that mattered: the GPT-Live session starts when Telnyx says the call was answered, not when we dial. Otherwise the model sits there listening to ringback and gets confused about whether someone is on the line.
 
+### Not a cascaded voice stack
+
+Most voice agents are cascaded: speech-to-text transcribes the other side, an LLM writes a reply, and text-to-speech reads it out. call4me isn't. There is exactly one model on the audio path, GPT-Live, and it hears audio and speaks audio directly. The text model further down this post only makes decisions. It never sits between the business and the voice.
+
+Cascades are popular because every piece is swappable and the LLM in the middle is a normal text model that's good at tools. But each hop adds latency, and turning speech into text throws away everything that isn't words: tone, hesitation, someone talking over you, the difference between hold music and silence. On a phone call those are most of the signal.
+
+Going speech-to-speech has worked out well. Interruptions mostly handle themselves. GPT-Live stops talking when it's talked over, and the only thing I had to add was flushing audio that was already queued at Telnyx, so the business doesn't hear the end of a sentence the model already abandoned. Cost isn't a blocker either: GPT-Live costs about 5¢ a minute, a small slice of the 25¢ a minute call4me charges.
+
+The real tradeoffs are the ones the rest of this post is about. A realtime model is worse at acting reliably than a text model, so it doesn't get tools. It only speaks when it hears something, so silence while it waits on me is my problem to fill. If you're weighing a switch away from a cascade, those are the two things to plan for.
+
 ### The voice model doesn't hold the tools
 
 GPT-Live is great at conversation and bad at being trusted with side effects. So it doesn't get any tools. Instead it delegates to a "back office": a regular Responses API model that owns everything that changes the world. The session config looks like this:
