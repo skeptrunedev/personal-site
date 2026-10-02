@@ -1,10 +1,13 @@
 ---
-title: "How I built call4me, a phone for AI agents"
+title: "How I built call4me, a phone for AI agents, and made $610 in a day"
 slug: how-i-built-call4me
 summary: "Why I gave Claude Code the ability to make real phone calls, and how it works under the hood: Telnyx, GPT-Live, a back office model, and a lot of fighting with phone menus."
 author: Nick Khami
 createdAt: 2026-10-02T12:00:00-07:00
 updatedAt: 2026-10-02T12:00:00-07:00
+coverImage: src/assets/images/blog-posts/HowIBuiltCall4me/og.jpg
+coverImageAlt: "Claude Code open in a terminal under the heading call4.me > ask your agent, the first frame of the call4me launch video"
+displayCoverImage: false
 isDraft: true
 isFeatured: false
 displaySummary: false
@@ -13,17 +16,13 @@ categories:
   - infrastructure
 ---
 
-Most of my job has me in a terminal. I use the terminal for sending emails, for coding, for booking meetings, project management, and more. It’s my productivity hub. So naturally, when I started booking medical appointments, I thought: I’m sick of making all these phone calls to get everything arranged myself, why can’t I have AI do it for me from my terminal?
-
-I went looking for a product and there was nothing that just worked out of the box. There are a lot of AI voice developer tools, but they all require a lot of configuration before they do anything useful. I wanted something ready to go, pre-built for the use case of a personal voice assistant you can use from your terminal.
+I went to get a skin analysis done thru [@layersbio](https://x.com/layersbio) and it came back with a bunch of areas for improvement that i wanted to action on which required getting some prescriptions. As I started getting those, I realized that my agents couldn't place phone calls for me to figure stuff out and that was a huge issue. So, naturally, I tweeted asking for a product to solve this.
 
 ![My tweet from Sep 25: "i'm trying to give my agents a phone to book medical appointments for me. who's the best provider for this?" followed by "i want something that just works"](../../assets/images/blog-posts/HowIBuiltCall4me/original-tweet.png)
 
+To my immense dissapointment, there wasn't anyone who had built this yet. I got a few replies from devtool style companies that had made voice AI APIs, but I really just wanted a managed solution and couldn't find one. I figured that there were enough other people similar to me who use a lot of agents but didn't like making phone calls that I decided it was actually worth building the tool myself and launched [call4me](https://call4.me). Based on the revenue, I feel like that instinct was correct.
+
 ![Stripe dashboard for call4me's first week: $610.00 gross volume, $215.00 MRR and $574.19 net volume from Sep 26 to Oct 2](../../assets/images/blog-posts/HowIBuiltCall4me/stripe-revenue.png)
-
-So I built [call4me](https://call4.me). It gives any agent (Claude Code, Codex, Claude Desktop, ChatGPT) one new tool: make a phone call. It went from first commit to launch in five days, and 230 commits later it works well enough that I use it for my own calls.
-
-I think it's a durable, sharp category. There's so much room to add to what a coding agent can do with an MCP server, and to provide value to people right now. So the rest of this post breaks down how it works: how Telnyx and OpenAI's GPT-Live fit together, why there's a second model sitting behind the voice, and what it took to get an AI through phone menus.
 
 ## What it does
 
