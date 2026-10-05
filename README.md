@@ -73,6 +73,14 @@ src/
 
 ## 📝 Content Management
 
+### Crawlers
+
+`public/robots.txt` allows every crawler on every path, including AI search, answers, and
+training. The sitemap includes all published pages. Cloudflare's desired crawler settings
+are committed in `cloudflare.crawlers.json`, with bot blocking, AI Labyrinth, managed
+robots.txt, and Browser Integrity Check disabled. Cloudflare's automatic DDoS protection
+remains active.
+
 Blog posts are written in MDX format and stored in `src/content/blog-posts/`. Each post includes:
 
 - Front matter with metadata (title, description, tags, etc.)

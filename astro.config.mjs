@@ -54,10 +54,7 @@ export default defineConfig({
   },
   integrations: [
     markdoc(),
-    sitemap({
-      filter: (page) =>
-        page.includes("ai-horseless-carriages") && !page.includes("xgboost"),
-    }),
+    sitemap(),
     icon(),
     mdx(),
   ],
